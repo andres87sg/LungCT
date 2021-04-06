@@ -16,9 +16,9 @@ import os
 
 #%% Main program
 
-origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient1/' 
+origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient2/' 
 listfiles = os.listdir(origpath)
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted/'
+destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted2/'
 patient = 'patient1'
 
 for i in range(len(listfiles)):
@@ -28,6 +28,8 @@ for i in range(len(listfiles)):
     [norm_img, ins_num] = dcm_convert(origpath,dcmfilename)    
     print(ins_num)
     
+    # Label png images
+    
     if np.int8(ins_num)<10:
         ins_num='0'+str(ins_num)
 
@@ -36,14 +38,11 @@ for i in range(len(listfiles)):
         
     if np.int8(ins_num)>=100:
         ins_num=str(ins_num)
-        
-    print(ins_num)
-    
+
     #plt.figure()
     #plt.imshow(norm_img,cmap='gray')
     #plt.axis('off')
     imgformat = '.png'
-    #image_dest = destpath + ins_num +dcmfilename + imgformat
     image_dest = destpath + ins_num + '_' + patient  + imgformat
     cv2.imwrite(image_dest, norm_img)
     
@@ -58,7 +57,7 @@ def dcm_convert(dcm_dir,dcmfilename):
     
     
     dcm_img = dicom.dcmread(img_path)
-    instance_number=dcm_img.InstanceNumber
+    #instance_number=dcm_img.InstanceNumber
     
     # Convert dicom image to pixel array
     img_array = dcm_img.pixel_array
