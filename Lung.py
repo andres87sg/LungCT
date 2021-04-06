@@ -13,16 +13,17 @@ import matplotlib as plt
 import cv2
 import numpy as np
 import os
-
+from pydicom import dcmread
+import pylibjpeg
 
 #%% Main program
 
 origpath = 'C:/Users/Andres/Desktop/dicomimage/60920DAE/' 
-listfiles = os.listdir('C:/Users/Andres/Desktop/dicomimage/60920DAE')
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted/'
+listfiles = os.listdir(origpath)
+destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted2/'
 
-for i in range(len(listfiles)):
-#for i in [1,2,3]:
+#for i in range(len(listfiles)):
+for i in [1]:
 #    print(listfiles[i])
     dcmfilename = listfiles[i]
     norm_img = dcm_convert(origpath,dcmfilename)    
