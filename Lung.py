@@ -9,21 +9,19 @@ Esta versión es con VTK
 #%%
  
 import pydicom as dicom
-import matplotlib as plt
+#import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import os
-from pydicom import dcmread
-import pylibjpeg
 
 #%% Main program
 
-origpath = 'C:/Users/Andres/Desktop/dicomimage/60920DAE/' 
+origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient3/' 
 listfiles = os.listdir(origpath)
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted2/'
+destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted3/'
 
-#for i in range(len(listfiles)):
-for i in [1]:
+for i in range(len(listfiles)):
+#for i in [1]:
 #    print(listfiles[i])
     dcmfilename = listfiles[i]
     norm_img = dcm_convert(origpath,dcmfilename)    
@@ -42,6 +40,8 @@ def dcm_convert(dcm_dir,dcmfilename):
     #filename = '60920DF2'
     img_path = dcm_dir+dcmfilename
     #print(img_path)
+    
+    
     dcm_img = dicom.dcmread(img_path)
     
     # Convert dicom image to pixel array
