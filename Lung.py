@@ -4,98 +4,98 @@ Created on Tue Apr  6 07:45:07 2021
 
 @author: Andres Sandino
 
-Esta versión es con VTK
 """
 #%%
  
 import pydicom as dicom
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import os
 
-#%% Main program
-
-origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient2/' 
-listfiles = os.listdir(origpath)
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted2/'
-patient = 'patient1'
-
-for i in range(len(listfiles)):
-#for i in [1]:
-#    print(listfiles[i])
-    dcmfilename = listfiles[i]
-    [norm_img, ins_num] = dcm_convert(origpath,dcmfilename)    
-    print(ins_num)
+#%% Main
+def main():
+    origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient1/' 
+    listfiles = os.listdir(origpath)
+    destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted1/'
+    patient = 'patient1'
     
-    # Label png images
+    for i in range(len(listfiles)):
     
-    if np.int8(ins_num)<10:
-        ins_num='0'+str(ins_num)
-
-    if np.int8(ins_num)<100:
-        ins_num='0'+str(ins_num)
+        dcmfilename = listfiles[i]
         
-    if np.int8(ins_num)>=100:
-        ins_num=str(ins_num)
+        # Convert .dcm file to graylevel image in window
+        # Lung window (L=-500, W=1500)
+       
+        L=-500
+        W=1500
+            
+        [norm_img, ins_num] = dcm_convert(origpath,dcmfilename,L,W)  
+        
+        ins_num = str(ins_num).zfill(4)
+    
+        imgformat = '.png'
+        image_dest = destpath + ins_num + '_' + patient  + imgformat
+    
+        # Save image in png format
+        cv2.imwrite(image_dest, norm_img)
+        
+        
+    
+#%% Define functions
 
-    #plt.figure()
-    #plt.imshow(norm_img,cmap='gray')
-    #plt.axis('off')
-    imgformat = '.png'
-    image_dest = destpath + ins_num + '_' + patient  + imgformat
-    cv2.imwrite(image_dest, norm_img)
-    
-    
-#%%
-# Open Image
-def dcm_convert(dcm_dir,dcmfilename):
+
+# Convert .dcm file to graylevel image in window
+def dcm_convert(dcm_dir,dcmfilename,WL,WW): 
    
-    #filename = '60920DF2'
     img_path = dcm_dir+dcmfilename
-    #print(img_path)
-    
-    
-    dcm_img = dicom.dcmread(img_path)
-    #instance_number=dcm_img.InstanceNumber
+
+    # Dicom image read
+    dcm_img = dicom.dcmread(img_path)   # Read dicom
+    instance_number=dcm_img.InstanceNumber # Dicom instace number
     
     # Convert dicom image to pixel array
     img_array = dcm_img.pixel_array
-    #print('img Lista')
-    
-    # Window (Lung Cancer L=-500, W=1500)
-    WL=-500
-    WW=1500
     
     # Tranform matrix to HU
     hu_img = transform_to_hu(dcm_img,img_array)
     
-    # Lung window image
-    lungwin_img = window_image(hu_img,WL,WW)
-    
-    # Normalizing image
-    norm_img=cv2.normalize(lungwin_img, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
-    norm_img=np.uint8(norm_img)
-    
-    return norm_img, instance_number
-    
-#dcm_image.WindowCenter
-#dcm_image.WindowWidth
+    # Compute an image in a window (Lung Window)
+    window_img = window_img_transf(hu_img,WL,WW)
 
+    return window_img, instance_number
+    
+    #dcm_image.WindowCenter
+    #dcm_image.WindowWidth
 
+# Transform dcm to HU (Hounsfield Units)
 def transform_to_hu(medical_image, image):
     intercept = medical_image.RescaleIntercept
+    #print('intercept')
+    #print(str(intercept))
     slope = medical_image.RescaleSlope
     hu_image = image * slope + intercept
     return hu_image
 
-def window_image(image, window_center, window_width):
-    img_min = window_center - window_width // 2
-    #print('min '+str(img_min))
-    img_max = window_center + window_width // 2
-    #print('max '+str(img_max))
+# Transform HU image to Window Image
+def window_img_transf(image, win_center, win_width):
+    
+    img_min = win_center - win_width // 2
+    img_max = win_center + win_width // 2
     window_image = image.copy()
     window_image[window_image < img_min] = img_min
     window_image[window_image > img_max] = img_max
-    return window_image
     
+    # Gray level bias correction -> from [0 to maxgraylevel]
+    window_image_c=window_image+np.abs(img_min)
+    
+    # Image gray level [0 255]
+    window_image_gl=np.uint16((window_image_c/np.max(window_image_c))*255)
+    window_image_gl=np.uint8(window_image_gl)
+        
+    return window_image_gl
+
+#%%
+if __name__ == "__main__":
+    main()
+
