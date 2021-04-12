@@ -13,9 +13,9 @@ import cv2
 
 import nibabel as nib
 
-path='C:/Users/Andres/Desktop/dicomimage/Mask_60920DAE.nii'
+path='C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/Mask_8FC229F0.nii'
 img = nib.load(path)
-img = img.get_data()
+img = img.get_fdata()
 print(img.shape)
 
 (h, w) = img.shape[:2]
@@ -35,11 +35,20 @@ for i in range(t):
     # List is flipped
     a=t-1-i
     
+    
+    
     #print('slide'+str(a))
     im1 = array[:,:,a] 
     
-    path2='C:/Users/Andres/Desktop/imexhs/Lung/mask/'
-    file='im'+str(t-a)+'.png'
+    path2='C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask/'
+    
+    #str(ins_num).zfill(4)
+    
+    #Labeling files
+    
+    imgformat = '.png'
+    patient_no = 1
+    file='P'+str(patient_no).zfill(4)+'_Im'+str(t-a).zfill(4)+'_mask'+imgformat
     
         
     

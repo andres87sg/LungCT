@@ -15,9 +15,9 @@ import os
 
 #%% Main
 def main():
-    origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient1/' 
+    origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/8FC229F0/' 
     listfiles = os.listdir(origpath)
-    destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted1/'
+    destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/8FC229F0/'
     patient = 'patient1'
     
     for i in range(len(listfiles)):
@@ -34,9 +34,11 @@ def main():
         
         ins_num = str(ins_num).zfill(4)
     
+        #Labeling files    
         imgformat = '.png'
-        image_dest = destpath + ins_num + '_' + patient  + imgformat
-    
+        patient_no = 1
+        image_dest = destpath + 'P'+ str(patient_no).zfill(4)+'_Im'+ins_num  + imgformat
+
         # Save image in png format
         cv2.imwrite(image_dest, norm_img)
         
