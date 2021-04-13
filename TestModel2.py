@@ -47,15 +47,15 @@ target_size=(512//4, 512//4)
 
 image_generator = image_datagen.flow_from_directory(
     input_dir,
-    class_mode=None, target_size=target_size,
-    seed=1)
+    class_mode=None, target_size=target_size, shuffle=False,
+    seed=1,batch_size=64)
 
 mask_generator = mask_datagen.flow_from_directory(
     mask_dir,
-    class_mode=None, target_size=target_size,
-    seed=1)
+    class_mode=None, target_size=target_size, shuffle=False,
+    seed=1,batch_size=64)
 
-steps = image_generator.n//image_generator.batch_size
+#steps = image_generator.n//image_generator.batch_size
 
 
 train_generator = zip(image_generator, mask_generator)
@@ -67,19 +67,24 @@ train_generator = zip(image_generator, mask_generator)
 
 #%%
 
-for _ in range(1):
-    img = image_generator.next()
-    mask = mask_generator.next()
+img = image_generator.next()
+mask = mask_generator.next()
+    
+for i in range(20):
+    #img = image_generator.next()
+    #mask = mask_generator.next()
     
     print(img.shape)
     plt.figure(1)
     plt.subplot(1,2,1)
     plt.axis('off')
-    plt.imshow(img[0])
+    plt.imshow(img[i])
     plt.subplot(1,2,2)
-    plt.imshow(mask[0])
+    plt.imshow(mask[i])
     plt.axis('off')
     plt.show()
+    
+    
     
 #%%
 #model = tf.keras.models.load_model('C:/Users/Andres/Desktop/CTClassif/exp.h5')
@@ -149,14 +154,14 @@ model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp.h5')
 
 #%%
 
-for _ in range(10):
-    img = image_generator.next()
-    mask = mask_generator.next()
+for i in range(0,20):
+    #img = image_generator.next()
+    #mask = mask_generator.next()
     print(img.shape)
     #plt.figure(1)
     #plt.imshow(img[0])    
     #plt.show()
-    img_array = img[0]
+    img_array = img[i]
     
     img_array = tf.expand_dims(img_array, 0)
     predict = model.predict(img_array)
@@ -168,17 +173,17 @@ for _ in range(10):
     plt.figure(1)
     plt.subplot(1,3,1)
     plt.axis('off')
-    plt.imshow(img[0])
+    plt.imshow(img[i])
     plt.title('Graylevel')
     plt.subplot(1,3,2)
     
-    ground=imoverlay(img,mask[0,:,:,1],[0,0,255])
+    ground=imoverlay(img[i],mask[i,:,:,1],[0,0,255])
     plt.imshow(ground)
     plt.title('Groundtruth')
     plt.axis('off')    
     plt.subplot(1,3,3)
     
-    pred=imoverlay(img,predicted_image,[255,0,0])
+    pred=imoverlay(img[i],predicted_image,[255,0,0])
     plt.imshow(pred,cmap='gray')
     plt.title('Predicted mask')
     plt.axis('off') 
@@ -193,31 +198,24 @@ for _ in range(10):
     # plt.title('predicted_mask')
     
     
-#%% 
-
-    asg=imoverlay(img,predicted_image)
-    
-    plt.figure()
-    plt.imshow(asg)
-
-
-
 #%%
+
+import cv2
 
 def imoverlay(img,predicted_image,coloredge):
     
     
-    predictedrgb=np.zeros((512,512,3))
+    #predictedrgb=np.zeros((512,512,3))
     
     predictedmask= cv2.resize(predicted_image,(512,512), interpolation = cv2.INTER_AREA)
     predicted=predictedmask*255
-    print('uno')
     
-    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
+    
+    imX = cv2.resize(img,(512,512), interpolation = cv2.INTER_AREA)
     
     img2=imX.copy()
     img2[predicted == 255] = coloredge
-    print('eso')
+    
     
     #plt.subplot(1,2,1)
     #plt.imshow(imX)
@@ -226,35 +224,52 @@ def imoverlay(img,predicted_image,coloredge):
     
     return img2
 
-
-
-
-
-
-#%%
-    import cv2
-    
-    predictedrgb=np.zeros((512,512,3))
-    
-    predictedmask= cv2.resize(predicted_image,(512,512), interpolation = cv2.INTER_AREA)
-    predicted=predictedmask*255
-
-    
-    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
-    
-    img2=imX.copy()
-    img2[predicted == 255] = [255,0,0]
-    
-    plt.subplot(1,2,1)
-    plt.imshow(imX)
-    plt.axis('off')
-    plt.subplot(122),plt.imshow(img2)
-    
-    
+   
 #%%
     
-    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
-    
-    
+import os
+import cv2
 
-    added_image = cv2.addWeighted(imX,0.4,predictedrgb,0.1,0)
+path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
+listfiles = os.listdir(path)
+#mask = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/val_dcm/'#
+
+#for i in range(len(listfiles)):
+#for i in range(20):
+for i in range(len(listfiles)):
+    
+    imgname = listfiles[i]
+    img_array=cv2.imread(path+imgname)
+    img_array=cv2.resize(img_array,(512//4,512//4), interpolation = cv2.INTER_AREA)
+    img_array=img_array/255 #Normalizing image
+    #plt.imshow(img_array,cmap='gray')
+    
+    #imgray= cv2.merge((img_array,img_array,img_array))
+    img_array = tf.expand_dims(img_array, 0)
+    
+    predict = model.predict(img_array)
+
+    predicted_image=predict[0]
+    predicted_image=np.int16(np.round(predicted_image>0.5))
+    predicted_image=predicted_image[:,:,0]
+    
+    img=np.array(img_array)
+    
+    pred=imoverlay(img[0],predicted_image,[255,0,0])
+    
+    plt.imshow(pred,cmap='gray')
+    plt.title('Predicted mask')
+    plt.axis('off') 
+    
+    plt.show()
+    plt.close()
+    
+    #imn = predict[0]
+    #plt.imshow(predicted_image)    
+    
+   # print(imgname)
+    
+    
+    
+    
+    
