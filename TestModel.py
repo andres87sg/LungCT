@@ -22,20 +22,21 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from tensorflow.keras import Input,layers, models
 from tensorflow.keras.layers import Conv2DTranspose,Dropout,Conv2D,BatchNormalization, Activation,MaxPooling2D
-from tensorflow.keras import Model, load_weights
+from tensorflow.keras import Model
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 
 import math
 import albumentations as A
 import matplotlib.pyplot as plt
+import numpy as np
 
 #%%
 
 #input_dir = "C:/Users/Andres/Desktop/imexhs/Lung/Prueba/CT/"
 #mask_dir = "C:/Users/Andres/Desktop/imexhs/Lung/Prueba/mask/"
 
-input_dir = 'C:/Users/Andres/Desktop/CTClassif/val_dcm/'
-mask_dir = 'C:/Users/Andres/Desktop/CTClassif/mask_val/'
+input_dir = 'C:/Users/Andres/Desktop/CTClassif/test/'
+mask_dir = 'C:/Users/Andres/Desktop/CTClassif/mask_test/'
 
 #%%
 
@@ -66,7 +67,7 @@ train_generator = zip(image_generator, mask_generator)
 
 #%%
 
-for _ in range(5):
+for _ in range(1):
     img = image_generator.next()
     mask = mask_generator.next()
     
@@ -131,7 +132,7 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
 
 #%%
 
-model = Unet(512//4, 512//4, nclasses=1, filters=64)
+model = Unet(512//4, 512//4, nclasses=2, filters=16)
 
 model.summary()
 
@@ -144,29 +145,11 @@ model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp.h5')
 
 #img_array = keras.preprocessing.image.img_to_array(img)
 #img_array = tf.expand_dims(img_array, 0)
-
-#%%
-import numpy as np
-
-
-for _ in range(5):
-    img = image_generator.next()
-    mask = mask_generator.next()
-    
-    print(img.shape)
-    plt.figure(1)
-    plt.subplot(1,2,1)
-    plt.axis('off')
-    plt.imshow(img[0])
-    plt.subplot(1,2,2)
-    plt.imshow(mask[0])
-    plt.axis('off')
-    plt.show()
     
 
 #%%
 
-for _ in range(5):
+for _ in range(10):
     img = image_generator.next()
     mask = mask_generator.next()
     print(img.shape)
@@ -186,11 +169,18 @@ for _ in range(5):
     plt.subplot(1,3,1)
     plt.axis('off')
     plt.imshow(img[0])
+    plt.title('Graylevel image')
     plt.subplot(1,3,2)
-    plt.imshow(mask[0])
+    
+    ground=imoverlay(img,mask[0,:,:,1],[0,0,255])
+    plt.imshow(ground)
+    plt.title('Groundtruth')
     plt.axis('off')    
     plt.subplot(1,3,3)
-    plt.imshow(predicted_image,cmap='gray')
+    
+    pred=imoverlay(img,predicted_image,[255,0,0])
+    plt.imshow(pred,cmap='gray')
+    plt.title('Predicted mask')
     plt.axis('off') 
     plt.show()
     
@@ -201,3 +191,70 @@ for _ in range(5):
     # plt.imshow(predicted_image[:,:,0],cmap='gray')
     # plt.axis('off')
     # plt.title('predicted_mask')
+    
+    
+#%% 
+
+    asg=imoverlay(img,predicted_image)
+    
+    plt.figure()
+    plt.imshow(asg)
+
+
+
+#%%
+
+def imoverlay(img,predicted_image,coloredge):
+    
+    
+    predictedrgb=np.zeros((512,512,3))
+    
+    predictedmask= cv2.resize(predicted_image,(512,512), interpolation = cv2.INTER_AREA)
+    predicted=predictedmask*255
+    print('uno')
+    
+    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
+    
+    img2=imX.copy()
+    img2[predicted == 255] = coloredge
+    print('eso')
+    
+    #plt.subplot(1,2,1)
+    #plt.imshow(imX)
+    #plt.axis('off')
+    #plt.subplot(122),plt.imshow(img2)
+    
+    return img2
+
+
+
+
+
+
+#%%
+    import cv2
+    
+    predictedrgb=np.zeros((512,512,3))
+    
+    predictedmask= cv2.resize(predicted_image,(512,512), interpolation = cv2.INTER_AREA)
+    predicted=predictedmask*255
+
+    
+    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
+    
+    img2=imX.copy()
+    img2[predicted == 255] = [255,0,0]
+    
+    plt.subplot(1,2,1)
+    plt.imshow(imX)
+    plt.axis('off')
+    plt.subplot(122),plt.imshow(img2)
+    
+    
+#%%
+    
+    imX = cv2.resize(img[0],(512,512), interpolation = cv2.INTER_AREA)
+    
+    
+
+    added_image = cv2.addWeighted(imX,0.4,predictedrgb,0.1,0)
