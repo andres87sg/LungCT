@@ -22,15 +22,15 @@ import matplotlib.pyplot as plt
 #%%
 
 
-train_path = 'C:/Users/Andres/Desktop/imexhs/Lung/Prueba/CT/'
-mask_path = 'C:/Users/Andres/Desktop/imexhs/Lung/Prueba/mask/'
+train_path = 'C:/Users/Andres/Desktop/CTClassif/train/'
+mask_path = 'C:/Users/Andres/Desktop/CTClassif/mask/'
 
-train_datagen = ImageDataGenerator(train_path)
+train_datagen = ImageDataGenerator(rescale=1./255)
 mask_datagen = ImageDataGenerator(rescale=1./255)
 
-
-batch_size = 1
-target_size=(512, 512)
+#%%
+batch_size = 16
+target_size=(512//16, 512//16)
 
 seed = 1 # Provide the same seed and keyword argument
 image_generator = train_datagen.flow_from_directory(train_path,target_size=target_size,class_mode=None,seed=1)
@@ -80,11 +80,11 @@ def bottleneck(x, filters, kernel_size=(3, 3), padding="same", strides=1):
     
 #%%
 
-image_size = 128
+image_size = 512//16
 
 def UNet():
     f = [16, 32, 64, 128, 256]
-    inputs = keras.layers.Input((128, 128, 3))
+    inputs = keras.layers.Input((512//16, 512//16, 3))
     
     p0 = inputs
     c1, p1 = down_block(p0, f[0]) #128 -> 64
@@ -99,7 +99,7 @@ def UNet():
     u3 = up_block(u2, c2, f[1]) #32 -> 64
     u4 = up_block(u3, c1, f[0]) #64 -> 128
     
-    outputs = keras.layers.Conv2D(3, (1, 1), padding="same", activation="sigmoid")(u4)
+    outputs = keras.layers.Conv2D(1, (1, 1), padding="same", activation="sigmoid")(u4)
     model = keras.models.Model(inputs, outputs)
     return model
 
