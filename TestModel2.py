@@ -242,7 +242,7 @@ for i in range(len(listfiles)):
     img_array=cv2.imread(path+imgname)
     img_array=cv2.resize(img_array,(512//4,512//4), interpolation = cv2.INTER_AREA)
     img_array=img_array/255 #Normalizing image
-    #plt.imshow(img_array,cmap='gray')
+    
     
     #imgray= cv2.merge((img_array,img_array,img_array))
     img_array = tf.expand_dims(img_array, 0)
@@ -259,8 +259,7 @@ for i in range(len(listfiles)):
     
     plt.imshow(pred,cmap='gray')
     plt.title('Predicted mask')
-    plt.axis('off') 
-    
+    plt.axis('off')     
     plt.show()
     plt.close()
     
