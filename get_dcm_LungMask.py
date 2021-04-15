@@ -13,9 +13,14 @@ import cv2
 
 import nibabel as nib
 
-path='C:/Users/Andres/Desktop/dicomimage/Mask_60920DAE.nii'
+case='22474FA3'
+patient_no = 8
+imgformat = '.png'
+
+path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/Mask_'+case+'.nii'
+destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask/' 
 img = nib.load(path)
-img = img.get_data()
+img = img.get_fdata()
 print(img.shape)
 
 (h, w) = img.shape[:2]
@@ -27,24 +32,19 @@ array=np.asarray(img)
 [m,n,t]=np.shape(array)
 
 
-#%%
-
 for i in range(t):
     
     print(i)
     # List is flipped
     a=t-1-i
+    slide = array[:,:,a] 
     
-    #print('slide'+str(a))
-    im1 = array[:,:,a] 
-    
-    path2='C:/Users/Andres/Desktop/imexhs/Lung/mask/'
-    file='im'+str(t-a)+'.png'
-    
-        
+ 
+    #Labeling files    
+    filename='P'+str(patient_no).zfill(4)+'_Im'+str(t-a).zfill(4)+'_mask'+imgformat
     
     # Image rotation 90°, later flip 180°
-    im2=np.rot90(im1)
+    im2=np.rot90(slide)
     for i in range(2):
         im2=np.rot90(im2)
         
@@ -53,7 +53,7 @@ for i in range(t):
     norm_img=cv2.normalize(im3, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
     norm_img=np.uint8(norm_img)
     
-    cv2.imwrite(path2+file, norm_img)
+    cv2.imwrite(destpath+filename, norm_img)
     
     #plt.figure()
     #plt.axis('off')

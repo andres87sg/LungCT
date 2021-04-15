@@ -15,10 +15,14 @@ import os
 
 #%% Main
 def main():
-    origpath = 'C:/Users/Andres/Desktop/dicomimage/Patient1/' 
+    
+    case='22474FA3'
+    patient_no = 8
+    
+    origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
     listfiles = os.listdir(origpath)
-    destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/converted1/'
-    patient = 'patient1'
+    destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/val_dcm/'
+    #patient = 'patient1'
     
     for i in range(len(listfiles)):
     
@@ -34,9 +38,11 @@ def main():
         
         ins_num = str(ins_num).zfill(4)
     
+        #Labeling files    
         imgformat = '.png'
-        image_dest = destpath + ins_num + '_' + patient  + imgformat
-    
+        #patient_no = 4
+        image_dest = destpath + 'P'+ str(patient_no).zfill(4)+'_Im'+ins_num  + imgformat
+
         # Save image in png format
         cv2.imwrite(image_dest, norm_img)
         
@@ -98,3 +104,4 @@ def window_img_transf(image, win_center, win_width):
 if __name__ == "__main__":
     main()
 
+print('The process has ended')
