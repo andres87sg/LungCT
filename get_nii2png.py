@@ -16,11 +16,11 @@ import numpy as np
 import nibabel as nib
 
 
-path = 'C:/Users/Andres/Downloads/Estudio13.nii'
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_val/' 
+path = 'C:/Users/Andres/Downloads/Estudio15.nii'
+destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/' 
 img = nib.load(path)
 img = img.get_fdata()
-patient_no = 23
+patient_no = 25
 imgformat = '.png'
 
 #%%

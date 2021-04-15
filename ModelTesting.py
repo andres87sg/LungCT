@@ -82,7 +82,7 @@ model.summary()
 #%%
 
 # Loading model weights
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp.h5')
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp3.h5')
 
 #%%
 
@@ -103,13 +103,15 @@ def imoverlay(img,predimg,coloredge):
     
     return overlayimg
 
-#%%
+#%% Visualizacion de resultados (No es necesario correr esta sección)
 
-path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
+#C:\Users\Andres\Desktop\imexhs\Lung\dicomimage\Torax\dcm2png\nuevos_casos_train
+#path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
+path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
 listfiles = os.listdir(path)
 
-#for i in range(len(listfiles)):
-for i in range(30,40):
+for i in range(len(listfiles)):
+#for i in range(30,40):
     
     # List of files
     im_name = listfiles[i]
