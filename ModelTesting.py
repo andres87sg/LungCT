@@ -23,6 +23,8 @@ import cv2
 
     
 #%% Model
+
+scale = 2
     
 def conv_block(tensor, nfilters, size=3, padding='same', 
                initializer="he_normal"):
@@ -74,7 +76,7 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
     model = Model(inputs=input_layer, outputs=output_layer, name='Unet')
     return model
 
-scale = 4
+
 model = Unet(512//scale, 512//scale, nclasses=2, filters=16)
 
 model.summary()
@@ -82,7 +84,7 @@ model.summary()
 #%%
 
 # Loading model weights
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp3.h5')
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/exp5.h5')
 
 #%%
 
@@ -107,46 +109,49 @@ def imoverlay(img,predimg,coloredge):
 
 #C:\Users\Andres\Desktop\imexhs\Lung\dicomimage\Torax\dcm2png\nuevos_casos_train
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
-path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
-listfiles = os.listdir(path)
+def displayresults():
 
-for i in range(len(listfiles)):
-#for i in range(30,40):
+    path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
+    listfiles = os.listdir(path)
     
-    # List of files
-    im_name = listfiles[i]
-    
-    # Graylevel image (array)
-    im_array=cv2.imread(path+im_name)
-    
-    scale = 4
-    
-    # Image resize
-    im_array=cv2.resize(im_array,(512//scale,512//scale), 
-                        interpolation = cv2.INTER_AREA)
-    
-    # Image gray level normalization
-    im_array=im_array/255
-    
-    # Adding one dimension to array
-    img_array = np.expand_dims(im_array,axis=[0])
-    
-    # Generate image prediction
-    pred_mask = model.predict(img_array)
-    
-    # Image mask as (NxMx1) array
-    pred_mask = pred_mask[0,:,:,0]
-    pred_mask=np.uint16(np.round(pred_mask>0.5))
-    
-    # Image overlay (mask - gray level) (Visualization)
-    pred=imoverlay(im_array,pred_mask,[255,0,0])
-    
-    plt.imshow(pred)
-    plt.title('Predicted mask')
-    plt.axis('off')     
-    plt.show()
-    plt.close()
-  
+    for i in range(len(listfiles)):
+    #for i in range(30,40):
+        
+        # List of files
+        im_name = listfiles[i]
+        
+        # Graylevel image (array)
+        im_array=cv2.imread(path+im_name)
+        
+        #scale = 4
+        
+        # Image resize
+        im_array=cv2.resize(im_array,(512//scale,512//scale), 
+                            interpolation = cv2.INTER_AREA)
+        
+        # Image gray level normalization
+        im_array=im_array/255
+        
+        # Adding one dimension to array
+        img_array = np.expand_dims(im_array,axis=[0])
+        
+        # Generate image prediction
+        pred_mask = model.predict(img_array)
+        
+        # Image mask as (NxMx1) array
+        pred_mask = pred_mask[0,:,:,0]
+        pred_mask=np.uint16(np.round(pred_mask>0.5))
+        
+        # Image overlay (mask - gray level) (Visualization)
+        pred=imoverlay(im_array,pred_mask,[255,0,0])
+        
+        plt.imshow(pred)
+        plt.title('Predicted mask')
+        plt.axis('off')     
+        plt.show()
+        plt.close()
+
+#displayresults()
     
 #%% Compute Metrics
 
@@ -158,10 +163,15 @@ test_path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask_t
 listfiles = os.listdir(path)
 mask_listfiles = os.listdir(test_path)
 
-dicescore=[]
+dicescore = []
+accuracy = []
+sensitivity = []
+specificity = []
+f1score = []
+    
 
 for i in range(len(listfiles)):
-#for i in range(0,10):
+#for i in range(10,15):
   
     
     # List of files
@@ -176,7 +186,7 @@ for i in range(len(listfiles)):
     mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
     
     ## Input image to model must be 128x128 therefore 512/4
-    scale = 4
+    scale = 2
     
     # Image resize must resize (Model input 128 x 128)
     im_array=cv2.resize(im_array,(512//scale,512//scale),interpolation = cv2.INTER_AREA)
@@ -210,17 +220,51 @@ for i in range(len(listfiles)):
     
         dicescore.append(dice)
     
+    true_mask_flat = true_mask.flatten()
+    pred_mask_flat = pred_mask.flatten()
+    
+    p = np.sum(true_mask_flat)
+    n = np.sum(np.logical_not(true_mask_flat))
+    tp = np.sum(true_mask_flat & pred_mask_flat)
+    fp = np.sum(np.logical_not(true_mask_flat) & pred_mask_flat)
+    tn = np.sum(np.logical_not(true_mask_flat) & np.logical_not(pred_mask_flat))
+    fn = np.sum(true_mask_flat & np.logical_not(pred_mask_flat))
+    
+    acc = (tp+tn)/(p+n)
+    sens = tp/(tp+fn+0.01) # Cuidado BUG!
+    spec = tn/(tn+fp)
+    f1 = 2*tp/(2*tp+fp+fn)
+    
+    accuracy.append(acc)
+    sensitivity.append(sens)
+    specificity.append(spec)
+    f1score.append(f1)
+    
 
 # Metrics
 
 dicescore = np.array(dicescore)
 meandice = np.mean(dicescore)
 stddice = np.std(dicescore)
-    
-print('Mean: '+str(meandice))
-print('Std: '+str(stddice))
-    
-    
+
+accuracy = np.array(accuracy)
+meanacc = np.mean(accuracy)
+stdacc = np.std(accuracy)
+
+f1sco = np.array(f1score)
+meanf1 = np.mean(f1sco)
+stdf1 = np.std(f1sco)
+
+print('------------------------')    
+print('Mean Dice: '+str(meandice))
+print('Std Dice: '+str(stddice))
+print('------------------------')
+print('Mean Acc: '+str(meanacc))
+print('Std Acc: '+str(stdacc))
+print('------------------------')
+print('Mean F1: '+str(meanf1))
+print('Std F1: '+str(stdf1))   
+print('------------------------')    
     
     
     
