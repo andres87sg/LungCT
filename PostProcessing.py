@@ -108,6 +108,7 @@ def imoverlay(img,predimg,coloredge):
 #C:\Users\Andres\Desktop\imexhs\Lung\dicomimage\Torax\dcm2png\nuevos_casos_train
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
 
+<<<<<<< Updated upstream
 #def displayresults():
 
 path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
@@ -153,6 +154,51 @@ for i in range(1,2):
     plt.axis('off')     
     plt.show()
     plt.close()
+=======
+def displayresults():
+
+    path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
+    listfiles = os.listdir(path)
+    
+    for i in range(len(listfiles)):
+    #for i in range(30,40):
+        
+        # List of files
+        im_name = listfiles[i]
+        
+        # Graylevel image (array)
+        im_or=cv2.imread(path+im_name)
+        im_array=im_or.copy()
+        
+        
+        #scale = 4
+        
+        # Image resize
+        im_array=cv2.resize(im_array,(512//scale,512//scale), 
+                            interpolation = cv2.INTER_AREA)
+        
+        # Image gray level normalization
+        im_array=im_array/255
+        
+        # Adding one dimension to array
+        img_array = np.expand_dims(im_array,axis=[0])
+        
+        # Generate image prediction
+        pred_mask = model.predict(img_array)
+        
+        # Image mask as (NxMx1) array
+        pred_mask = pred_mask[0,:,:,0]
+        pred_mask=np.uint16(np.round(pred_mask>0.5))
+        
+        # Image overlay (mask - gray level) (Visualization)
+        pred=imoverlay(im_or,pred_mask,[255,0,0])
+        
+        plt.imshow(pred)
+        plt.title('Predicted mask')
+        plt.axis('off')     
+        plt.show()
+        plt.close()
+>>>>>>> Stashed changes
 
 #displayresults()
     
@@ -160,11 +206,16 @@ for i in range(1,2):
 
 print('Computing Metrics...')
 
+<<<<<<< Updated upstream
 #'C:/Users/Andres/Desktop/CTClassif/mask_test/test'
 
 path = 'C:/Users/Andres/Desktop/CTClassif/test_set/test/'
 test_path = 'C:/Users/Andres/Desktop/CTClassif/mask_test/test/'
 
+=======
+path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
+test_path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask_test/'
+>>>>>>> Stashed changes
 
 listfiles = os.listdir(path)
 mask_listfiles = os.listdir(test_path)
@@ -178,8 +229,13 @@ f1score = []
 ## Input image to model must be 128x128 therefore 512/4
 #scale = 2
 
+<<<<<<< Updated upstream
 #for i in range(len(listfiles)):
 for i in range(424,425):
+=======
+for i in range(len(listfiles)):
+#for i in range(30,31):
+>>>>>>> Stashed changes
   
     
     # List of files
@@ -193,10 +249,15 @@ for i in range(424,425):
     # Groundtruth mask Image resize
     mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
     
+<<<<<<< Updated upstream
     im_gray =cv2.resize(im_array,(512,512),interpolation = cv2.INTER_AREA)
        
     # Image resize must resize (Model input 128 x 128)
     
+=======
+       
+    # Image resize must resize (Model input 128 x 128)
+>>>>>>> Stashed changes
     im_array=cv2.resize(im_array,(512//scale,512//scale),interpolation = cv2.INTER_AREA)
     im_array=im_array/255
     
@@ -214,7 +275,11 @@ for i in range(424,425):
     pred_mask = cv2.resize(pred_mask,(512,512), 
                         interpolation = cv2.INTER_AREA)
     
+<<<<<<< Updated upstream
     #pred_mask = cv2.morphologyEx(pred_mask, cv2.MORPH_CLOSE, kernel)
+=======
+    pred_mask = cv2.morphologyEx(pred_mask, cv2.MORPH_CLOSE, kernel)
+>>>>>>> Stashed changes
     
     true_mask = np.uint16(mask_array[:,:,0])//255
     
@@ -222,6 +287,7 @@ for i in range(424,425):
     
     #sumintersectmask = np.sum(intersectmask)
     
+<<<<<<< Updated upstream
     plt.subplot(1,3,1)
     plt.imshow(im_gray,cmap='gray')
     plt.title('gray level')
@@ -238,6 +304,8 @@ for i in range(424,425):
     
     
     
+=======
+>>>>>>> Stashed changes
     sumpredtrue = np.sum(true_mask)+np.sum(pred_mask)
     
     if sumpredtrue != 0:
@@ -295,12 +363,18 @@ print('------------------------')
 
 #%%
 
+<<<<<<< Updated upstream
 kernel = np.ones((8,8),np.uint8)
 #erosion = cv2.erode(pred_mask,kernel,iterations = 1)
+=======
+kernel = np.ones((5,5),np.uint8)
+#erosion = cv2.erode(img,kernel,iterations = 1)
+>>>>>>> Stashed changes
 
 #closing = cv2.morphologyEx(pred_mask, cv2.MORPH_CLOSE, kernel)
 
 from scipy.ndimage import gaussian_filter
+<<<<<<< Updated upstream
 from scipy import ndimage
 
 a = np.arange(50, step=2).reshape((5,5))
@@ -337,3 +411,21 @@ f
 
 
 
+=======
+
+
+plt.subplot(1,2,1)
+plt.imshow(true_mask,cmap='gray')
+plt.title('mask')
+plt.axis('off')
+plt.subplot(1,2,2)
+plt.imshow(pred_mask,cmap='gray')
+plt.title('predicted')
+plt.axis('off')
+
+
+
+
+
+  
+>>>>>>> Stashed changes

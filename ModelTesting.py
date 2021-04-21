@@ -25,23 +25,21 @@ import cv2
 #%% Model
 
 scale = 2
+filters= 8
+nclasses=2
     
-def conv_block(tensor, nfilters, size=3, padding='same', 
-               initializer="he_normal"):
-    x = Conv2D(filters=nfilters, kernel_size=(size, size), 
-               padding=padding, kernel_initializer=initializer)(tensor)
+def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
+    x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(tensor)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    x = Conv2D(filters=nfilters, kernel_size=(size, size), 
-               padding=padding, kernel_initializer=initializer)(x)
+    x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     return x
 
 
 def deconv_block(tensor, residual, nfilters, size=3, padding='same', strides=(2, 2)):
-    y = Conv2DTranspose(nfilters, kernel_size=(size, size), 
-                        strides=strides, padding=padding)(tensor)
+    y = Conv2DTranspose(nfilters, kernel_size=(size, size), strides=strides, padding=padding)(tensor)
     y = tf.concat([y, residual], axis=3)
     y = conv_block(y, nfilters)
     return y
@@ -60,7 +58,7 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
     conv4_out = MaxPooling2D(pool_size=(2, 2))(conv4)
     conv4_out = Dropout(0.5)(conv4_out)
     conv5 = conv_block(conv4_out, nfilters=filters*16)
-    conv5 = Dropout(0.5)(conv5)
+    conv5 = Dropout(0.5,name='BOTTLENECK')(conv5)
 # up
     deconv6 = deconv_block(conv5, residual=conv4, nfilters=filters*8)
     deconv6 = Dropout(0.5)(deconv6)
@@ -77,14 +75,22 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
     return model
 
 
+<<<<<<< Updated upstream
 model = Unet(512//scale, 512//scale, nclasses=2, filters=32)
+=======
+model = Unet(512//scale, 512//scale, nclasses, filters)
+>>>>>>> Stashed changes
 
 model.summary()
 
 #%%
 
 # Loading model weights
+<<<<<<< Updated upstream
 model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4.h5')
+=======
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento7.h5')
+>>>>>>> Stashed changes
 
 #%%
 
@@ -109,6 +115,7 @@ def imoverlay(img,predimg,coloredge):
 
 #C:\Users\Andres\Desktop\imexhs\Lung\dicomimage\Torax\dcm2png\nuevos_casos_train
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
+
 def displayresults():
 
     path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
@@ -121,7 +128,9 @@ def displayresults():
         im_name = listfiles[i]
         
         # Graylevel image (array)
-        im_array=cv2.imread(path+im_name)
+        im_or=cv2.imread(path+im_name)
+        im_array=im_or.copy()
+        
         
         #scale = 4
         
@@ -143,7 +152,7 @@ def displayresults():
         pred_mask=np.uint16(np.round(pred_mask>0.5))
         
         # Image overlay (mask - gray level) (Visualization)
-        pred=imoverlay(im_array,pred_mask,[255,0,0])
+        pred=imoverlay(im_or,pred_mask,[255,0,0])
         
         plt.imshow(pred)
         plt.title('Predicted mask')
@@ -168,7 +177,9 @@ accuracy = []
 sensitivity = []
 specificity = []
 f1score = []
-    
+
+## Input image to model must be 128x128 therefore 512/4
+#scale = 2
 
 for i in range(len(listfiles)):
 #for i in range(10,15):
@@ -185,9 +196,13 @@ for i in range(len(listfiles)):
     # Groundtruth mask Image resize
     mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
     
+<<<<<<< Updated upstream
     ## Input image to model must be 128x128 therefore 512/4
     #scale = 2
     
+=======
+       
+>>>>>>> Stashed changes
     # Image resize must resize (Model input 128 x 128)
     im_array=cv2.resize(im_array,(512//scale,512//scale),interpolation = cv2.INTER_AREA)
     im_array=im_array/255
@@ -233,12 +248,20 @@ for i in range(len(listfiles)):
     acc = (tp+tn)/(p+n)
     sens = tp/(tp+fn+0.01) # Cuidado BUG!
     spec = tn/(tn+fp)
+<<<<<<< Updated upstream
     # f1 = 2*tp/(2*tp+fp+fn)
+=======
+    #f1 = 2*tp/(2*tp+fp+fn)
+>>>>>>> Stashed changes
     
     accuracy.append(acc)
     sensitivity.append(sens)
     specificity.append(spec)
+<<<<<<< Updated upstream
     # f1score.append(f1)
+=======
+    #f1score.append(f1)
+>>>>>>> Stashed changes
     
 
 # Metrics
