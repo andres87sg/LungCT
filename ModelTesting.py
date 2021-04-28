@@ -84,7 +84,7 @@ model.summary()
 
 # Loading model weights
 
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4new.h5')
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4_new.h5')
 
 
 #%%
@@ -112,8 +112,9 @@ def imoverlay(img,predimg,coloredge):
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
 
 def displayresults():
-
-    path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/'
+    
+    #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
+    path = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png/'
     listfiles = os.listdir(path)
     
     for i in range(len(listfiles)):
