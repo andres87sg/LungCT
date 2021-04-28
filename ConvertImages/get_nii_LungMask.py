@@ -15,6 +15,7 @@ import nibabel as nib
 
 path = 'C:/Users/Andres/Downloads/Nueva carpeta/maskEstudio15.nii'
 destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/prueba/' 
+
 img = nib.load(path)
 img = img.get_fdata()
 patient_no = 25
