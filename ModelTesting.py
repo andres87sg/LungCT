@@ -83,11 +83,9 @@ model.summary()
 #%%
 
 # Loading model weights
-<<<<<<< Updated upstream
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4.h5')
-=======
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento7.h5')
->>>>>>> Stashed changes
+
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4new.h5')
+
 
 #%%
 
