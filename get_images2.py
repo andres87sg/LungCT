@@ -112,6 +112,16 @@ def convertim(im_array,scale):
 
 #%%
 
-des = cv2.bitwise_not(mask_array_modif2)
-contours, hierarchy = cv2.findContours(des[:,:,0], cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-plt.imshow(des,cmap='gray')
+#des = cv2.bitwise(mask_array_modif2)
+contours, hierarchy = cv2.findContours(mask_array_modif2[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+image = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
+
+plt.imshow(image,cmap='gray')
+
+
+#%%
+
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+im_dilate = cv2.dilate(mask_array_modif2,kernel,iterations = 1)
+
+plt.imshow(im_dilate,cmap='gray')
