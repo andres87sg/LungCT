@@ -29,7 +29,7 @@ destpath_mask = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Val/Mask_M/Mask_png/'
 #mask_im_name = mask_listfiles_mask[i]
 #im_name = listfiles_mask[i]
 #for i in range(len(listfiles_mask)):
-for i in range(20,21):
+for i in range(188,189):
 
     # path_mask='C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask_train/'
     # filename='P0001_Im0'+str(i)+'_mask.png'
@@ -59,7 +59,7 @@ for i in range(20,21):
     #close_img = cv2.morphologyEx(open_img, cv2.MORPH_CLOSE, kernel)  
     
     close_img = cv2.morphologyEx(mask_array, cv2.MORPH_CLOSE, kernel)    
-    # open_img = cv2.morphologyEx(close_img, cv2.MORPH_CLOSE, kernel)
+    #close_img = cv2.morphologyEx(close_img, cv2.MORPH_OPEN, kernel)
     
     # Structiring element (Disk , r=5 )    
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))    
@@ -69,16 +69,26 @@ for i in range(20,21):
     mask_array_modif2 = mask_array_modif.copy()
     mask_array_modif2 = np.uint8(mask_array_modif2)
     
-    # plt.subplot(131)
-    # plt.imshow(im_array,cmap='gray')
-    # plt.axis('off')
-    # plt.subplot(132)
-    # plt.imshow(mask_array,cmap='gray')
-    # plt.axis('off')
-    # plt.subplot(133)
-    # plt.imshow(mask_array_modif2,cmap='gray')
-    # plt.axis('off')
-    # plt.show()
+    plt.subplot(221)
+    plt.imshow(im_array,cmap='gray')
+    plt.axis('off')
+    plt.title('Original Image')
+    
+    plt.subplot(222)
+    plt.imshow(mask_array,cmap='gray')
+    plt.axis('off')
+    plt.title('Original Mask')
+    
+    plt.subplot(223)
+    plt.imshow(superpixels,cmap='gray')
+    plt.axis('off')
+    plt.title('superpixels')
+    
+    plt.subplot(224)
+    plt.imshow(mask_array_modif2,cmap='gray')
+    plt.axis('off')
+    plt.title('Modified Mask')
+    plt.show()
     
     norm_img=cv2.normalize(mask_array_modif2, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
     norm_img=np.uint8(norm_img)
@@ -100,4 +110,8 @@ def convertim(im_array,scale):
     
     return superpixels
 
+#%%
 
+des = cv2.bitwise_not(mask_array_modif2)
+contours, hierarchy = cv2.findContours(des[:,:,0], cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+plt.imshow(des,cmap='gray')

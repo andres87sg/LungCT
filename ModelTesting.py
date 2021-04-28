@@ -24,9 +24,9 @@ import cv2
     
 #%% Model
 
-scale = 2
-filters= 8
-nclasses=2
+scale = 4
+filters= 32
+nclasses= 2
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
     x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(tensor)
@@ -75,11 +75,8 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
     return model
 
 
-<<<<<<< Updated upstream
-model = Unet(512//scale, 512//scale, nclasses=2, filters=32)
-=======
+
 model = Unet(512//scale, 512//scale, nclasses, filters)
->>>>>>> Stashed changes
 
 model.summary()
 
