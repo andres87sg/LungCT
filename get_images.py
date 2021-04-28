@@ -28,7 +28,7 @@ destpath_mask = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Val/Mask_M/Mask_png/'
 #mask_im_name = mask_listfiles_mask[i]
 #im_name = listfiles_mask[i]
 #for i in range(len(listfiles_mask)):
-for i in range(10,11):
+for i in range(20,21):
 
     # path_mask='C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask_train/'
     # filename='P0001_Im0'+str(i)+'_mask.png'
@@ -80,12 +80,6 @@ for i in range(10,11):
     norm_img=np.uint8(norm_img)
     
     cv2.imwrite(destpath_mask+maskfilename, norm_img)
-
-
-
-
-
-
 
 #im_array = cv2.imread(path_mask+im_name)               # Graylevel image
 #im_gray = im_array.copy()
