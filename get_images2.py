@@ -29,7 +29,7 @@ destpath_mask = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Val/Mask_M/Mask_png/'
 #mask_im_name = mask_listfiles_mask[i]
 #im_name = listfiles_mask[i]
 #for i in range(len(listfiles_mask)):
-for i in range(188,189):
+for i in range(195,196):
 
     # path_mask='C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/mask_train/'
     # filename='P0001_Im0'+str(i)+'_mask.png'
@@ -113,6 +113,7 @@ def convertim(im_array,scale):
 #%%
 
 #des = cv2.bitwise(mask_array_modif2)
+def drawcontour(im_array,mask_array_modif2)
 contours, hierarchy = cv2.findContours(mask_array_modif2[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 image = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
 

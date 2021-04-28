@@ -192,13 +192,6 @@ for i in range(len(listfiles)):
     # Groundtruth mask Image resize
     mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
     
-<<<<<<< Updated upstream
-    ## Input image to model must be 128x128 therefore 512/4
-    #scale = 2
-    
-=======
-       
->>>>>>> Stashed changes
     # Image resize must resize (Model input 128 x 128)
     im_array=cv2.resize(im_array,(512//scale,512//scale),interpolation = cv2.INTER_AREA)
     im_array=im_array/255
@@ -244,20 +237,16 @@ for i in range(len(listfiles)):
     acc = (tp+tn)/(p+n)
     sens = tp/(tp+fn+0.01) # Cuidado BUG!
     spec = tn/(tn+fp)
-<<<<<<< Updated upstream
+
     # f1 = 2*tp/(2*tp+fp+fn)
-=======
-    #f1 = 2*tp/(2*tp+fp+fn)
->>>>>>> Stashed changes
+
     
     accuracy.append(acc)
     sensitivity.append(sens)
     specificity.append(spec)
-<<<<<<< Updated upstream
-    # f1score.append(f1)
-=======
+
     #f1score.append(f1)
->>>>>>> Stashed changes
+
     
 
 # Metrics
