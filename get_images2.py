@@ -113,7 +113,7 @@ def convertim(im_array,scale):
 #%%
 
 #des = cv2.bitwise(mask_array_modif2)
-def drawcontour(im_array,mask_array_modif2)
+#def drawcontour(im_array,mask_array_modif2)
 contours, hierarchy = cv2.findContours(mask_array_modif2[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 image = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
 
