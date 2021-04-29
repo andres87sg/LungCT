@@ -114,7 +114,7 @@ def imoverlay(img,predimg,coloredge):
 #def displayresults():
     
     #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
-path = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png/'
+path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test2/CT/CT_png/'
 listfiles = os.listdir(path)
 
 for i in range(len(listfiles)):
@@ -125,7 +125,7 @@ for i in range(len(listfiles)):
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
-    im_array=im_or.copy()
+    im_array=im_or
     
     
     #scale = 4
