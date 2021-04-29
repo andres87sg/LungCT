@@ -117,8 +117,8 @@ def imoverlay(img,predimg,coloredge):
 path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test2/CT/CT_png/'
 listfiles = os.listdir(path)
 
-for i in range(len(listfiles)):
-#for i in range(30,31):
+#for i in range(len(listfiles)):
+for i in range(30,31):
     
     # List of files
     im_name = listfiles[i]
@@ -164,6 +164,8 @@ for i in range(len(listfiles)):
     kk = np.logical_not(pred_mask)
     
     ll = im_dilated & kk
+    
+    img = cv2.resize(im_or,(512,512), interpolation = cv2.INTER_AREA)
     
     pred=imoverlay(im_or,ll,[255,0,0])
     
