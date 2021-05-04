@@ -32,7 +32,6 @@ imgformat = '.png'
 
 #%%
 
-
 # Transform HU image to Window Image
 def window_img_transf(image, win_center, win_width):
     
@@ -59,9 +58,7 @@ def main():
     # Recuerde que está al revés la numeración
     
     for i in range(numslices):
-        
-        
-        
+         
         img_array = img[:,:,numslices-1-i]
         
         im_rot=img_array.copy()
@@ -71,10 +68,11 @@ def main():
                
         #a=numslices-1-i
         
-    
+        # Window width and Window Lenght in CT
         L=-500
         W=1500    
     
+        # Image transformed into CT window 
         im_out=window_img_transf(im_rot,L,W)
         
         norm_img=cv2.normalize(im_out, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
