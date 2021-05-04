@@ -15,12 +15,20 @@ import numpy as np
 
 import nibabel as nib
 
+# Patient number
+patient_no = 25
 
+# Origin path
 path = 'C:/Users/Andres/Downloads/Estudio15.nii'
+
+# Dest path
 destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/nuevos_casos_test/' 
+
+# Load Image
 img = nib.load(path)
 img = img.get_fdata()
-patient_no = 25
+
+# Image format
 imgformat = '.png'
 
 #%%
