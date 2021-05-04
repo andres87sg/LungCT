@@ -1,19 +1,18 @@
-# -*- coding: utf-8 -*-
-
 """
-Created on Wed Apr 14 11:57:38 2021
+Created on Apr 14 2021
+Modified on May 05 2021
 
-@author: Andres
+@author: Andres Sandino
 """
-
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
-
 import nibabel as nib
+
+#%%
 
 # Patient number
 patient_no = 25
