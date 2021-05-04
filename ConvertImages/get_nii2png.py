@@ -50,6 +50,8 @@ def main():
         im_rot=img_array
         for _ in range(1):
             im_rot=np.rot90(im_rot)
+            
+        im_rot=np.fliplr(im_rot)
                
         # Window Width (WW) and Window Lenght (WW) in CT
         L=-500
