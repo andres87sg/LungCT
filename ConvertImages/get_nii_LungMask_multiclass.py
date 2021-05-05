@@ -71,4 +71,4 @@ for i in range(numslices):
         print(filename)
         cv2.imwrite(destpath+filename,im_flip)
 
-
+# Nota
