@@ -61,10 +61,11 @@ for i in range(numslices):
     #     im2=np.rot90(im2)
     
     im_flip=np.fliplr(im_rot)
-    
+
+    # Esto es para seleccionar solamente los cortes con marcados    
     sum_pix=np.sum(slide)
     #print(sum_pix)
-    
+        
     if sum_pix>0:    
     #Labeling files    
         filename='P'+str(patient_no).zfill(4)+'_Im'+str(numslices-a).zfill(4)+'_mask'+imgformat
