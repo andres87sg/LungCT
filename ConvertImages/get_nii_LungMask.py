@@ -41,7 +41,7 @@ array=np.asarray(img)
 
 
 #for i in range(numslices):
-for i in range(39,40):
+for i in range(35,40):
     
     #print(i)
     # List is flipped
@@ -58,8 +58,8 @@ for i in range(39,40):
     # for i in range(4):
     #     im2=np.rot90(im2)
     
-    im3=im2.copy()    
-    #im3=np.fliplr(im2)
+    i#m3=im2.copy()    
+    im3=np.fliplr(im2)
     
     norm_img=cv2.normalize(im3, None, alpha = 0, 
                            beta = 255, 

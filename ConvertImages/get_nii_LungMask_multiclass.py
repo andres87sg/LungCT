@@ -17,11 +17,15 @@ import cv2
 import nibabel as nib
 
 # Patient number
-patient_no = 1
+patient_no = 41
+
+# bkg=0, class1=1, class2=2
+# Include background as a class
+classes=3
 
 # Origin path and filename
-path = 'C:/Users/Andres/Desktop/CTAnotado/resultados/Dr Alvarado/'
-filename = 'maskEstudio1.nii'
+path = 'C:/Users/Andres/Desktop/CTAnotado/resultados/Dr Vargas/'
+filename = 'maskEstudio41.nii'
 
 # Dest path
 destpath = 'C:/Users/Andres/Desktop/CovidImages/Mask/' 
@@ -33,46 +37,38 @@ img = img.get_fdata()
 # Image format
 imgformat = '.png'
 
-array=np.asarray(img)
+im_array=np.array(img)
 
 #%%
-[width,length,numslices]=np.shape(array)
-[m,n,t]=np.shape(array)
+[width,length,numslices]=np.shape(im_array)
+[m,n,t]=np.shape(im_array)
 
-
-#for i in range(numslices):
-for i in range(39,40):
+for i in range(numslices):
+#for i in range(39,42):
     
     #print(i)
     # List is flipped
     a=numslices-1-i
-    slide = array[:,:,a] 
+    slide = im_array[:,:,a] 
     
- 
-    #Labeling files    
-    filename='P'+str(patient_no).zfill(4)+'_Im'+str(numslices-a).zfill(4)+'_mask'+imgformat
-    print(filename)
-    
+    for ind_class in range(classes):         
+        num_class=np.round(255/(classes-1)*ind_class)        
+        slide[slide==ind_class]=num_class
+
     # Image rotation 90°, later flip 180°
-    im2=np.rot90(slide)
+    im_rot=np.rot90(slide)
     # for i in range(4):
     #     im2=np.rot90(im2)
     
-    im3=im2.copy()    
-    #im3=np.fliplr(im2)
+    im_flip=np.fliplr(im_rot)
     
-    norm_img=cv2.normalize(im3, None, alpha = 0, 
-                           beta = 255, 
-                           norm_type = cv2.NORM_MINMAX, 
-                           dtype = cv2.CV_32F)
+    sum_pix=np.sum(slide)
+    #print(sum_pix)
     
-    norm_img=np.uint8(norm_img)
-    
-    cv2.imwrite(destpath+filename, norm_img)
-    
-    #plt.figure()
-    #plt.axis('off')
-    #plt.imshow(norm_img,cmap="gray")
-    #plt.title('slide'+str(t-a))
-    
+    if sum_pix>0:    
+    #Labeling files    
+        filename='P'+str(patient_no).zfill(4)+'_Im'+str(numslices-a).zfill(4)+'_mask'+imgformat
+        print(filename)
+        cv2.imwrite(destpath+filename,im_flip)
 
+# Nota
