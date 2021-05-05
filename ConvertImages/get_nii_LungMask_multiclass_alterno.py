@@ -17,21 +17,22 @@ import cv2
 import nibabel as nib
 
 # Patient number
-patient_no = 31
+patient_no = 30
 
 # bkg=0, class1=1, class2=2
 # Include background as a class
 classes=3
 
-name = 'Estudio31'
+name = 'Estudio'+str(patient_no)
 
 # Origin path and filename
+
 # CT Image
-path = 'C:/Users/Andres/Desktop/CTAnotado/imagenes/Dr Vargas/'
+path = 'C:/Users/Andres/Desktop/CTAnotado/imagenes/Dr Quintana/'
 filename = name + '.nii'
 
 # Mask Image
-path_mask = 'C:/Users/Andres/Desktop/CTAnotado/resultados/Dr Vargas/'
+path_mask = 'C:/Users/Andres/Desktop/CTAnotado/resultados/Dr Quintana/'
 filename_mask = 'mask'+ name + '.nii'
 
 # Dest path
@@ -49,28 +50,12 @@ img_mask = img_mask.get_fdata()
 # Image format
 imgformat = '.png'
 
-im_array=np.array(img_mask)
-im_array2=np.array(img)
-
-#%%
-[width,length,numslices]=np.shape(im_array)
-#[m,n,t]=np.shape(im_array)
-
-for i in range(numslices):
-    
-    flag=createmask(im_array,numslices,i,classes)
-    #print(str(flag))
-    
-    if flag == 1:
-        
-        # Convert image
-        nii2png(im_array2,numslices,i)
-    
-
-
+# Convert *.nii in array
+im_mask_array=np.array(img_mask)
+im_array=np.array(img)
     
 #%%
-def nii2png(im_array,numslices,indslic):
+def nii2png(im_array,numslices,indslic,patient_no,destpath):
         # Recuerde que está al revés la numeración
     img_array = img[:,:,numslices-1-indslic]
     
@@ -105,11 +90,8 @@ def nii2png(im_array,numslices,indslic):
     cv2.imwrite(destpath+destfilename, norm_img)
     #print(destfilename)
 
-
-
-
 #%%
-def createmask(im_array,numslices,i,classes):    
+def createmask(im_array,numslices,i,classes,patient_no,destpath_mask):    
     
     #print(i)
     # List is flipped
@@ -161,3 +143,20 @@ def window_img_transf(image, win_center, win_width):
     window_image_gl=np.uint8(window_image_gl)
         
     return window_image_gl
+
+#%%
+
+[width,length,numslices]=np.shape(im_array)
+#[m,n,t]=np.shape(im_array)
+
+for ind in range(numslices):
+    
+    flag=createmask(im_mask_array,numslices,ind,classes,patient_no,destpath_mask)
+    #print(str(flag))
+    
+    if flag == 1:
+        
+        # Convert image
+        nii2png(im_array,numslices,ind,patient_no,destpath)
+    
+print('The process has ended')
