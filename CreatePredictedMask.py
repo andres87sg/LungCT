@@ -109,19 +109,23 @@ def imoverlay(img,predimg,coloredge):
 #%% Visualizacion de resultados (No es necesario correr esta sección)
 
 
-path = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT/CT/'
-destpath = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT2/'
+path = 'C:/Users/Andres/Desktop/CovidImages/CT/'
+destpath = 'C:/Users/Andres/Desktop/CovidImages/CTSegmented/'
+destpath_mask = 'C:/Users/Andres/Desktop/CovidImages/MaskMulti/'
 
-path_mask = 'C:/Users/Andres/Desktop/CovidImages/Validation/Mask/Mask/'
+path_mask = 'C:/Users/Andres/Desktop/CovidImages/Mask/'
 
 listfiles = os.listdir(path)
 listfiles_mask = os.listdir(path_mask)
 
-#for i in range(len(listfiles)):
-for i in range(60,61):
+for i in range(len(listfiles)):
+#for i in range(63,64):
     
     # List of files
     im_name = listfiles[i]
+    
+    filename = im_name[:-4]
+    
     im_name_mask = listfiles_mask[i]
     
     # Graylevel image (array)
@@ -131,9 +135,7 @@ for i in range(60,61):
     
     imtrue_mask=cv2.imread(path_mask+im_name_mask)
     
-    tt=np.round((imtrue_mask/255*4))
-    
-    ss=tt[:,:,0]
+    xl=imtrue_mask=cv2.imread(path_mask+im_name_mask)
     
     # tt=np.zeros([512,512])
     # tt[imtrue_mask==0]=1
@@ -158,11 +160,31 @@ for i in range(60,61):
     
     # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
-    pred_mask=np.uint16(np.round(pred_mask>0.5))
+    
+    pred_mask=np.uint16(np.round(pred_mask>=0.5))
+    
     
     pred_mask = cv2.resize(pred_mask,(512,512), 
                            interpolation = cv2.INTER_AREA)
+ 
     
+    imtrue_mask=np.round((imtrue_mask/255*4))
+    
+    roimask=pred_mask*imtrue_mask[:,:,0]
+    
+    newmask= roimask + pred_mask
+    
+    ls=np.zeros([512,512])
+    
+    ls[newmask==1]=np.round(255/4*1)-1
+    ls[newmask==3]=np.round(255/4*2)-1
+    ls[newmask==4]=np.round(255/4*3)-1
+    ls[newmask==5]=np.round(255/4*4)
+    
+    
+    
+    
+    inv_pred_mask = np.logical_not(pred_mask)
     
     
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
@@ -197,7 +219,8 @@ for i in range(60,61):
                        norm_type = cv2.NORM_MINMAX, 
                        dtype = cv2.CV_32F)
     
-    cv2.imwrite(destpath+im_name, norm_img)
+    cv2.imwrite(destpath+filename+'.png', norm_img)
+    cv2.imwrite(destpath_mask+filename+'_mask'+'.png', ls)
    # predmask = cv2.resize(pred_mask,(512,512), interpolation = cv2.INTER_AREA)
    # predmask = predmask*255
     

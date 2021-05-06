@@ -114,11 +114,12 @@ def imoverlay(img,predimg,coloredge):
 def displayresults():
     
     #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
-    path = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png/'
+    
+    path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/CT/CT_png/'
     listfiles = os.listdir(path)
     
-    for i in range(len(listfiles)):
-    #for i in range(30,40):
+    #for i in range(len(listfiles)):
+    for i in range(30,40):
         
         # List of files
         im_name = listfiles[i]

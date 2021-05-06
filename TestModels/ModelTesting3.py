@@ -112,16 +112,23 @@ def imoverlay(img,predimg,coloredge):
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
 
 #def displayresults():
-    
+from PIL import Image
     #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
-path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test2/CT/CT_png/'
+path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/CT/CT_png/'
+test_path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/Mask_M/Mask_png/'
+
+
 listfiles = os.listdir(path)
+mask_listfiles = os.listdir(test_path)
+
+images = []
 
 #for i in range(len(listfiles)):
-for i in range(30,40):
+for i in range(1,50):
     
     # List of files
     im_name = listfiles[i]
+    mask_im_name = mask_listfiles[i]
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
@@ -129,6 +136,16 @@ for i in range(30,40):
     
     
     #scale = 4
+    
+        # Groundtruth image (array)
+    mask_array=cv2.imread(test_path+mask_im_name)   # Mask image
+    im_array=cv2.imread(path+im_name)               # Graylevel image
+    
+    # Groundtruth mask Image resize
+    mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
+    
+    
+    
     
     # Image resize
     im_array=cv2.resize(im_array,(512//scale,512//scale), 
@@ -169,34 +186,45 @@ for i in range(30,40):
     
     pred=imoverlay(im_or,ll,[255,0,0])
     
-   # predmask = cv2.resize(pred_mask,(512,512), interpolation = cv2.INTER_AREA)
-   # predmask = predmask*255
-    
-    #zz=np.zeros([512,512,3],dtype=float)
-    
-    #for i in range(2):
-    #    zz[:,:,i]=predmask
-    
-#    gray = cv2.cvtColor(predmask, cv2.COLOR_BGR2GRAY)
-
-    #import cv2 as cv2
-    
-    #contours, hierarchy = cv2.findContours(zz[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #contour_img = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
-    
-    #imagen = drawcontour(im_array,predmask)
+    nlm=mask_array[:,:,0]  
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    im_dilated1 = cv2.dilate(nlm,kernel,iterations = 1)
+    kk1 = np.logical_not(pred_mask)
+    ll1 = im_dilated & kk1
     
     
     
-    plt.imshow(pred)
-    plt.title('Predicted mask')
-    plt.axis('off')     
-    plt.show()
-    plt.close()
-
+    pred_truth=imoverlay(img,ll1,[0,0,255])
+    
+    
+    # plt.subplot(1,2,1)
+    # plt.imshow(pred_truth)
+    # plt.title('Ground truth')
+    # plt.axis('off')
+    # plt.subplot(1,2,2)
+    # plt.imshow(pred)
+    # plt.title('Prediction')
+    # plt.axis('off')
+    
+    # plt.show()
+ 
 #displayresults()
     
 #%% Compute Metrics
+
+from PIL import Image
+import glob
+ 
+# Create the frames
+
+images[0].save('C:/Users/Andres/Desktop/pillow_imagedraw.gif',
+               save_all = True,
+               append_images = images[1:],
+               optimize = False, duration = 10,loop=0)
+
+
+
+#%%
 
 print('Computing Metrics...')
 
