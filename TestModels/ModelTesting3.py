@@ -114,8 +114,11 @@ def imoverlay(img,predimg,coloredge):
 #def displayresults():
 from PIL import Image
     #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
-path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/CT/CT_png/'
-test_path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/Mask_M/Mask_png/'
+    
+path =    'C:/Users/Andres/Desktop/Presentacion/Caso4/CT/'
+test_path = 'C:/Users/Andres/Desktop/Presentacion/Caso4/Mask/'
+#path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/CT/CT_png/'
+#test_path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/Mask_M/Mask_png/'
 
 
 listfiles = os.listdir(path)
@@ -123,8 +126,8 @@ mask_listfiles = os.listdir(test_path)
 
 images = []
 
-#for i in range(len(listfiles)):
-for i in range(1,50):
+for i in range(len(listfiles)):
+#for i in range(50,51):
     
     # List of files
     im_name = listfiles[i]
@@ -196,7 +199,7 @@ for i in range(1,50):
     
     pred_truth=imoverlay(img,ll1,[0,0,255])
     
-    
+    # fig1=plt.figure(1)
     # plt.subplot(1,2,1)
     # plt.imshow(pred_truth)
     # plt.title('Ground truth')
@@ -205,9 +208,42 @@ for i in range(1,50):
     # plt.imshow(pred)
     # plt.title('Prediction')
     # plt.axis('off')
+    # plt.savefig('C:/Users/Andres/Desktop/eso.png')
+    
+    predalt = cv2.resize(pred,(128,128), interpolation = cv2.INTER_AREA)
+    
     
     # plt.show()
- 
+    pred2=Image.fromarray(np.uint8(predalt))
+    # finn = Image.open('C:/Users/Andres/Desktop/eso.png')
+    images.append(pred2)
+    
+    
+   # predmask = cv2.resize(pred_mask,(512,512), interpolation = cv2.INTER_AREA)
+   # predmask = predmask*255
+    
+    #zz=np.zeros([512,512,3],dtype=float)
+    
+    #for i in range(2):
+    #    zz[:,:,i]=predmask
+    
+#    gray = cv2.cvtColor(predmask, cv2.COLOR_BGR2GRAY)
+
+    #import cv2 as cv2
+    
+    #contours, hierarchy = cv2.findContours(zz[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #contour_img = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
+    
+    #imagen = drawcontour(im_array,predmask)
+    
+    
+    
+    # plt.imshow(pred)
+    # plt.title('Predicted mask')
+    # plt.axis('off')     
+    # plt.show()
+    # plt.close()
+
 #displayresults()
     
 #%% Compute Metrics
@@ -217,10 +253,12 @@ import glob
  
 # Create the frames
 
-images[0].save('C:/Users/Andres/Desktop/pillow_imagedraw.gif',
+#images[0].save('C:/Users/Andres/Desktop/Case1_CT.gif',
+
+images[0].save('C:/Users/Andres/Desktop/Case4_Pred2.gif',
                save_all = True,
                append_images = images[1:],
-               optimize = False, duration = 10,loop=0)
+               optimize = False, duration = 100,loop=0)
 
 
 
