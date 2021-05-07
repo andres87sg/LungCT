@@ -118,7 +118,7 @@ path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test2/CT/CT_png/'
 listfiles = os.listdir(path)
 
 #for i in range(len(listfiles)):
-for i in range(30,40):
+for i in range(30,31):
     
     # List of files
     im_name = listfiles[i]
