@@ -2,6 +2,8 @@
 """
 Created on Fri Apr 23 14:55:07 2021
 
+Mask DILATION
+
 @author: Andres
 """
 

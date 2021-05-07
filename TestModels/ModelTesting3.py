@@ -78,7 +78,7 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
 
 model = Unet(512//scale, 512//scale, nclasses, filters)
 
-model.summary()
+#model.summary()
 
 #%%
 
@@ -111,54 +111,158 @@ def imoverlay(img,predimg,coloredge):
 #C:\Users\Andres\Desktop\imexhs\Lung\dicomimage\Torax\dcm2png\nuevos_casos_train
 #path = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/test_dcm/'
 
-def displayresults():
-    
+#def displayresults():
+from PIL import Image
     #'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png'
-    path = 'C:/Users/Andres/Desktop/CTPulmon/LNG/Test/CT/CT_png/'
-    listfiles = os.listdir(path)
     
-    for i in range(len(listfiles)):
-    #for i in range(30,40):
-        
-        # List of files
-        im_name = listfiles[i]
-        
-        # Graylevel image (array)
-        im_or=cv2.imread(path+im_name)
-        im_array=im_or.copy()
-        
-        
-        #scale = 4
-        
-        # Image resize
-        im_array=cv2.resize(im_array,(512//scale,512//scale), 
-                            interpolation = cv2.INTER_AREA)
-        
-        # Image gray level normalization
-        im_array=im_array/255
-        
-        # Adding one dimension to array
-        img_array = np.expand_dims(im_array,axis=[0])
-        
-        # Generate image prediction
-        pred_mask = model.predict(img_array)
-        
-        # Image mask as (NxMx1) array
-        pred_mask = pred_mask[0,:,:,0]
-        pred_mask=np.uint16(np.round(pred_mask>0.5))
-        
-        # Image overlay (mask - gray level) (Visualization)
-        pred=imoverlay(im_or,pred_mask,[255,0,0])
-        
-        plt.imshow(pred)
-        plt.title('Predicted mask')
-        plt.axis('off')     
-        plt.show()
-        plt.close()
+path =    'C:/Users/Andres/Desktop/Presentacion/Caso4/CT/'
+test_path = 'C:/Users/Andres/Desktop/Presentacion/Caso4/Mask/'
+#path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/CT/CT_png/'
+#test_path = 'C:/Users/Andres/Desktop/CTPulmon/DataPartition/Test/Mask_M/Mask_png/'
+
+
+listfiles = os.listdir(path)
+mask_listfiles = os.listdir(test_path)
+
+images = []
+
+for i in range(len(listfiles)):
+#for i in range(50,51):
+    
+    # List of files
+    im_name = listfiles[i]
+    mask_im_name = mask_listfiles[i]
+    
+    # Graylevel image (array)
+    im_or=cv2.imread(path+im_name)
+    im_array=im_or
+    
+    
+    #scale = 4
+    
+        # Groundtruth image (array)
+    mask_array=cv2.imread(test_path+mask_im_name)   # Mask image
+    im_array=cv2.imread(path+im_name)               # Graylevel image
+    
+    # Groundtruth mask Image resize
+    mask_array=cv2.resize(mask_array,(512,512),interpolation = cv2.INTER_AREA)
+    
+    
+    
+    
+    # Image resize
+    im_array=cv2.resize(im_array,(512//scale,512//scale), 
+                        interpolation = cv2.INTER_AREA)
+    
+    # Image gray level normalization
+    im_array=im_array/255
+    
+    # Adding one dimension to array
+    img_array = np.expand_dims(im_array,axis=[0])
+    
+    # Generate image prediction
+    pred_mask = model.predict(img_array)
+    
+    # Image mask as (NxMx1) array
+    pred_mask = pred_mask[0,:,:,0]
+    pred_mask=np.uint16(np.round(pred_mask>0.5))
+    
+    pred_mask = cv2.resize(pred_mask,(512,512), 
+                           interpolation = cv2.INTER_AREA)
+    
+    
+    
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    pred_mask = cv2.morphologyEx(pred_mask, cv2.MORPH_CLOSE, kernel)
+    
+    # Image overlay (mask - gray level) (Visualization)
+    #pred=imoverlay(im_or,pred_mask,[255,0,0])
+    
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    im_dilated = cv2.dilate(pred_mask,kernel,iterations = 1)
+    
+    kk = np.logical_not(pred_mask)
+    
+    ll = im_dilated & kk
+    
+    img = cv2.resize(im_or,(512,512), interpolation = cv2.INTER_AREA)
+    
+    pred=imoverlay(im_or,ll,[255,0,0])
+    
+    nlm=mask_array[:,:,0]  
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    im_dilated1 = cv2.dilate(nlm,kernel,iterations = 1)
+    kk1 = np.logical_not(pred_mask)
+    ll1 = im_dilated & kk1
+    
+    
+    
+    pred_truth=imoverlay(img,ll1,[0,0,255])
+    
+    # fig1=plt.figure(1)
+    # plt.subplot(1,2,1)
+    # plt.imshow(pred_truth)
+    # plt.title('Ground truth')
+    # plt.axis('off')
+    # plt.subplot(1,2,2)
+    # plt.imshow(pred)
+    # plt.title('Prediction')
+    # plt.axis('off')
+    # plt.savefig('C:/Users/Andres/Desktop/eso.png')
+    
+    predalt = cv2.resize(pred,(128,128), interpolation = cv2.INTER_AREA)
+    
+    
+    # plt.show()
+    pred2=Image.fromarray(np.uint8(predalt))
+    # finn = Image.open('C:/Users/Andres/Desktop/eso.png')
+    images.append(pred2)
+    
+    
+   # predmask = cv2.resize(pred_mask,(512,512), interpolation = cv2.INTER_AREA)
+   # predmask = predmask*255
+    
+    #zz=np.zeros([512,512,3],dtype=float)
+    
+    #for i in range(2):
+    #    zz[:,:,i]=predmask
+    
+#    gray = cv2.cvtColor(predmask, cv2.COLOR_BGR2GRAY)
+
+    #import cv2 as cv2
+    
+    #contours, hierarchy = cv2.findContours(zz[:,:,0], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #contour_img = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
+    
+    #imagen = drawcontour(im_array,predmask)
+    
+    
+    
+    # plt.imshow(pred)
+    # plt.title('Predicted mask')
+    # plt.axis('off')     
+    # plt.show()
+    # plt.close()
 
 #displayresults()
     
 #%% Compute Metrics
+
+from PIL import Image
+import glob
+ 
+# Create the frames
+
+#images[0].save('C:/Users/Andres/Desktop/Case1_CT.gif',
+
+images[0].save('C:/Users/Andres/Desktop/Case4_Pred2.gif',
+               save_all = True,
+               append_images = images[1:],
+               optimize = False, duration = 100,loop=0)
+
+
+
+#%%
 
 print('Computing Metrics...')
 
@@ -274,9 +378,18 @@ print('------------------------')
 # print('Std F1: '+str(stdf1))   
 # print('------------------------')    
     
+#%%
 
+def drawcontour(im_array,mask_array_modif2):
+
+    contours, hierarchy = cv2.findContours(mask_array_modif2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour_img = cv2.drawContours(im_array, contours,-1, (0, 0, 255), 2)
+    return contour_img
     
+    #plt.imshow(image,cmap='gray')
+    
+"""
+Morphological Transformations
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+"""
 
-
-
-  
