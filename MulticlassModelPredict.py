@@ -109,12 +109,12 @@ def imoverlay(img,predimg,coloredge):
 #%% Visualizacion de resultados (No es necesario correr esta sección)
 
 
-path = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT2/CT/'
-destpath = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT2/CT/'
+path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
+destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
 listfiles = os.listdir(path)
 
 #for i in range(len(listfiles)):
-for i in range(63,64):
+for i in range(10,11):
     
     # List of files
     im_name = listfiles[i]
@@ -154,7 +154,7 @@ for i in range(63,64):
     
   #  mm[pp<0.6666]=1
     
-    mm[pp<0.4]=0   
+    mm[pp<0.25]=0   
     
     
     
