@@ -109,12 +109,12 @@ def imoverlay(img,predimg,coloredge):
 #%% Visualizacion de resultados (No es necesario correr esta sección)
 
 
-path = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT2/CT/'
-destpath = 'C:/Users/Andres/Desktop/CovidImages/Validation/CT2/CT/'
+path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
+destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
 listfiles = os.listdir(path)
 
 #for i in range(len(listfiles)):
-for i in range(63,64):
+for i in range(10,11):
     
     # List of files
     im_name = listfiles[i]
@@ -131,7 +131,7 @@ for i in range(63,64):
                         interpolation = cv2.INTER_AREA)
     
     # Image gray level normalization
-    im_array=im_array/255
+    im_array=im_array/np.max(im_array)
     
     # Adding one dimension to array
     img_array = np.expand_dims(im_array,axis=[0])
@@ -140,6 +140,7 @@ for i in range(63,64):
     pred_mask = model.predict(img_array)
     
     
+ 
     
   
     
@@ -154,7 +155,8 @@ for i in range(63,64):
     
   #  mm[pp<0.6666]=1
     
-    mm[pp<0.4]=0   
+    ab=mm[pp<0.25]
+    
     
     
     
@@ -227,3 +229,15 @@ for i in range(63,64):
 
 #displayresults()
     
+#%%
+
+zz1=pp<0.25
+zz2=pp<0.50
+zz3=pp<0.75
+zz4=pp>0.75
+
+a = zz1
+b = np.logical_not(np.logical_not(zz1) & zz2)
+c = np.logical_not(np.logical_not(zz2) & zz3)
+d = zz4
+ 
