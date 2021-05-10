@@ -139,7 +139,7 @@ for i in range(10,11):
     # Generate image prediction
     pred_mask = model.predict(img_array)
     
-    
+#%%    
  
     
   
