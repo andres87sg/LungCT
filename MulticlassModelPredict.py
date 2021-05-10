@@ -120,7 +120,7 @@ listfiles = os.listdir(path)
 
 start_time = time()
 
-for i in range(10,40):
+for i in range(38,39):
     
     # List of files
     im_name = listfiles[i]
