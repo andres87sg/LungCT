@@ -118,9 +118,10 @@ listfiles = os.listdir(path)
 
 #%%
 
-start_time = time()
+#start_time = time()
+colormat=zeros([512,512])
 
-for i in range(38,39):
+for i in range(1,40):
     
     # List of files
     im_name = listfiles[i]
@@ -157,6 +158,14 @@ for i in range(38,39):
        
     pred_mask = cv2.resize(pred_maskmulti,(512,512), 
                           interpolation = cv2.INTER_AREA)
+    
+    
+    for i in range(4):
+        colormat[pred_mask==i]=(255*i/3)
+    
+    
+    #backtorgb = cv2.cvtColor(colormat,cv2.COLOR_GRAY2RGB)
+    
 
     
     plt.figure()
@@ -164,7 +173,7 @@ for i in range(38,39):
     plt.imshow(im_array,cmap='gray')
     plt.axis('off')
     plt.subplot(1,2,2)    
-    plt.imshow(pred_mask,cmap='gray')
+    plt.imshow(colormat,cmap='gray')
     plt.axis('off')
     plt.show()
 
@@ -177,7 +186,7 @@ for i in range(38,39):
 
 #displayresults()
 
-elapsed_time = time() - start_time
+#elapsed_time = time() - start_time
 
 
 
