@@ -113,49 +113,52 @@ def imoverlay(img,predimg,coloredge):
 
 
 path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
-destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages/Testing/Mask/Mask/'
+
+
+#destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
 listfiles = os.listdir(path)
+listfilesmask = os.listdir(pathmask)
 
 #%%
 
 #start_time = time()
-colormat=zeros([512,512])
+colormat=np.zeros([512,512])
+
+grtr_mask=[] #Groundtruth mask
 
 for i in range(39,40):
     
     # List of files
     im_name = listfiles[i]
+    im_namemask = listfilesmask[i]
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
     im_array=im_or
     
+    # Read ground truth Mask image (array)
+    grtr_mask=cv2.imread(pathmask+im_namemask)
     
-    #scale = 4
+    # Convert RGB mask to Grayscale
+    grtr_mask=grtr_mask[:,:,0] 
     
-    # Image resize
-    im_array=cv2.resize(im_array,(512//scale,512//scale), 
-                        interpolation = cv2.INTER_AREA)
+    # Un-normalizing mask [Classes=0,1,2,3]
+    grtr_mask=np.round(grtr_mask/255*4)
     
-    # Image gray level normalization
-    im_array=im_array/np.max(im_array)
-    
-    # Adding one dimension to array
-    img_array = np.expand_dims(im_array,axis=[0])
+    scale = 4
+    input_img_mdl = getprepareimg(im_array,scale)
     
     # Generate image prediction
-    pred_mask = model.predict(img_array)
+    pred_mask = model.predict(input_img_mdl)
     
-        # Image mask as (NxMx1) array
+    # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
 
     pred_maskmulti=np.round(pred_mask*4)
     pred_maskmulti=pred_maskmulti-1 #Classes: 0,1,2,3
 
-    
-      
-    # pred_mask=np.uint16(np.round(pred_mask>0.5))
-       
+    # Resize predicted mask
     pred_mask = cv2.resize(pred_maskmulti,(512,512), 
                           interpolation = cv2.INTER_AREA)
     
@@ -193,6 +196,23 @@ for i in range(39,40):
 #%%
 
 
+def getprepareimg(im_array,scale):
+    
+    # Resize image (Input array to segmentation model)
+    im_array=cv2.resize(im_array,(512//scale,512//scale), 
+                        interpolation = cv2.INTER_AREA)
+    
+    # Image gray level normalization
+    im_array=im_array/np.max(im_array)
+    
+    # Adding one dimension to array
+    im_array_out = np.expand_dims(im_array,axis=[0])
+    
+    return im_array_out
+
+
+#%%
+
 
 #for i in range(len(listfiles)):ç
 timeit()
@@ -207,8 +227,4 @@ for i in range(10000):
 # Take the original function's return value.
 
 # Calculate the elapsed time.
-elapsed_time = time() - start_time
-
-
-
- 
+elapsed_time = time() - start_time 
