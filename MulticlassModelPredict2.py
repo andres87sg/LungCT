@@ -270,10 +270,13 @@ def jaccarindex(grtr_mask,pred_mask,label):
     pred=np.zeros([512,512])
     pred[pred_mask==label]=1
     
+    # Intersection
     inter= np.sum(grtr*pred>=1)
-    print(inter)
+    #print(inter)
+    
+    # Union
     union=np.sum(grtr+pred>=1)
-    print(union)
+    #print(union)
     jaccard=inter/union
     
     return jaccard
