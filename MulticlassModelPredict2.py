@@ -125,7 +125,11 @@ listfilesmask = os.listdir(pathmask)
 #start_time = time()
 colormat=np.zeros([512,512])
 
+#colormask=np.zeros([512,512,3])
+#grtrcolormask=np.zeros([512,512,3])
+
 grtr_mask=[] #Groundtruth mask
+classes = 4
 
 for i in range(39,40):
     
@@ -144,7 +148,7 @@ for i in range(39,40):
     grtr_mask=grtr_mask[:,:,0] 
     
     # Un-normalizing mask [Classes=0,1,2,3]
-    grtr_mask=np.round(grtr_mask/255*4)
+    grtr_mask=np.round(grtr_mask/255*classes)
     
     scale = 4
     input_img_mdl = getprepareimg(im_array,scale)
@@ -155,29 +159,36 @@ for i in range(39,40):
     # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
 
-    pred_maskmulti=np.round(pred_mask*4)
+    pred_maskmulti=np.round(pred_mask*classes)
     pred_maskmulti=pred_maskmulti-1 #Classes: 0,1,2,3
 
     # Resize predicted mask
     pred_mask = cv2.resize(pred_maskmulti,(512,512), 
                           interpolation = cv2.INTER_AREA)
     
-    
-    for i in range(4):
-        colormat[pred_mask==i]=(255*i/3)
-    
-    
-    #backtorgb = cv2.cvtColor(colormat,cv2.COLOR_GRAY2RGB)
+    # Convert gray mask to color mask    
+    predcolormask = getcolormask(pred_mask)
+    grtrcolormask = getcolormask(grtr_mask)
+
     
 
     
     plt.figure()
-    plt.subplot(1,2,1)
+    plt.subplot(1,3,1)
     plt.imshow(im_array,cmap='gray')
     plt.axis('off')
-    plt.subplot(1,2,2)    
-    plt.imshow(colormat,cmap='gray')
+    plt.title('Gray Level')
+    
+    plt.subplot(1,3,2)
+    plt.imshow(grtrcolormask,cmap='gray')
+    plt.axis('off')  
+    plt.title('Groundtruth')
+    
+    
+    plt.subplot(1,3,3)    
+    plt.imshow(predcolormask,cmap='gray')
     plt.axis('off')
+    plt.title('Predicted')
     plt.show()
 
     
@@ -209,6 +220,22 @@ def getprepareimg(im_array,scale):
     im_array_out = np.expand_dims(im_array,axis=[0])
     
     return im_array_out
+
+def getcolormask(graymask):
+    
+    [w,l] = np.shape(graymask)
+    colormask = np.zeros([w,l,3])
+    
+    colormask[graymask==0]=[0,0,0]
+    colormask[graymask==1]=[255,0,0]
+    colormask[graymask==2]=[0,255,0]
+    colormask[graymask==3]=[0,0,255]
+    
+    colormask=np.int16(colormask)
+    
+    
+    return colormask
+    
 
 
 #%%
