@@ -81,7 +81,7 @@ def Unet(img_height, img_width, nclasses, filters):
 
 model = Unet(512//scale, 512//scale, nclasses, filters)
 
-model.summary()
+#model.summary()
 
 #%%
 
@@ -131,7 +131,7 @@ colormat=np.zeros([512,512])
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-for i in range(39,40):
+for i in range(3,4):
     
     # List of files
     im_name = listfiles[i]
@@ -146,9 +146,10 @@ for i in range(39,40):
     
     # Convert RGB mask to Grayscale
     grtr_mask=grtr_mask[:,:,0] 
+    grtr_mask[grtr_mask==4]=3 # Creater classes: 0,1,2,3
     
     # Un-normalizing mask [Classes=0,1,2,3]
-    grtr_mask=np.round(grtr_mask/255*classes)
+    #grtr_mask=np.round(grtr_mask/255*classes)
     
     scale = 4
     input_img_mdl = getprepareimg(im_array,scale)
@@ -222,18 +223,27 @@ def getprepareimg(im_array,scale):
 
 def getcolormask(graymask):
     
+    lab=np.unique(graymask)
+    
+    
     [w,l] = np.shape(graymask)
     colormask = np.zeros([w,l,3])
+    graymask = np.zeros([w,l,3])
     
-    colormask[graymask==0]=[0,0,0]
-    colormask[graymask==1]=[255,0,0]
-    colormask[graymask==2]=[0,255,0]
-    colormask[graymask==3]=[0,0,255]
+    colormask[graymask==lab[0]]=[0,0,0]
+    colormask[graymask==lab[1]]=[255,0,0]
+    colormask[graymask==lab[2]]=[0,255,0]
+    colormask[graymask==lab[3]]=[0,0,255]
+
+    for ind in range(2):
+        graymask[graymask==lab[ind]]=ind
+
     
     colormask=np.int16(colormask)
+    graymask=np.int16(graymask)
     
     
-    return colormask
+    return colormask,graymask
     
 
 
