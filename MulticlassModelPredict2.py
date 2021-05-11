@@ -131,11 +131,11 @@ colormat=np.zeros([512,512])
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-for i in range(3,4):
+for i in range(25,30):
     
     # List of files
-    im_name = listfiles[i]
-    im_namemask = listfilesmask[i]
+    im_name = listfiles[i] # Gray level
+    im_namemask = listfilesmask[i] # Segmentation mask
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
@@ -145,12 +145,11 @@ for i in range(3,4):
     grtr_mask=cv2.imread(pathmask+im_namemask)
     
     # Convert RGB mask to Grayscale
-    grtr_mask=grtr_mask[:,:,0] 
-    grtr_mask[grtr_mask==4]=3 # Creater classes: 0,1,2,3
-    
-    # Un-normalizing mask [Classes=0,1,2,3]
-    #grtr_mask=np.round(grtr_mask/255*classes)
-    
+    grtr_mask = grtr_mask[:,:,0] 
+    grtr_mask = np.round(grtr_mask/255*classes)
+    grtr_mask[grtr_mask==4]=3 # Recuerde que asigno 3 a los valores 4 (Opcional)
+    grtr_mask2 =grtr_mask
+       
     scale = 4
     input_img_mdl = getprepareimg(im_array,scale)
     
@@ -168,10 +167,22 @@ for i in range(3,4):
                           interpolation = cv2.INTER_AREA)
     
     # Convert gray mask to color mask    
-    predcolormask = getcolormask(pred_mask)
-    grtrcolormask = getcolormask(grtr_mask)
+    col_predmask,gray_predmask = getcolormask(pred_mask)
+    col_grtrmask,gray_grtrmask = getcolormask(grtr_mask)
     
+    label_list = []
+    label_list = np.unique(grtr_mask.tolist() + pred_mask.tolist())
     
+    for label_list in label_list:
+        jacc=jaccarindex(grtr_mask,pred_mask,label_list)
+        print(jacc)
+    
+    # jack=jaccarindex(grtr_mask,pred_mask,2)
+    # print(jack)
+    
+    # jack=jaccarindex(grtr_mask,pred_mask,3)
+    # print(jack)
+
     
     plt.figure()
     plt.subplot(1,3,1)
@@ -180,24 +191,19 @@ for i in range(3,4):
     plt.title('Gray Level')
     
     plt.subplot(1,3,2)
-    plt.imshow(grtrcolormask,cmap='gray')
+    plt.imshow(col_grtrmask,cmap='gray')
     plt.axis('off')  
     plt.title('Groundtruth')
     
     
     plt.subplot(1,3,3)    
-    plt.imshow(predcolormask,cmap='gray')
+    plt.imshow(col_predmask,cmap='gray')
     plt.axis('off')
     plt.title('Predicted')
     plt.show()
 
-    
-    # plt.imshow(pred)
-    # plt.title('Predicted mask')
-    # plt.axis('off')     
-    # plt.show()
-    # plt.close()
 
+    
 #displayresults()
 
 #elapsed_time = time() - start_time
@@ -206,7 +212,7 @@ for i in range(3,4):
 
 #%%
 
-
+# Convert image in a tensor
 def getprepareimg(im_array,scale):
     
     # Resize image (Input array to segmentation model)
@@ -221,35 +227,59 @@ def getprepareimg(im_array,scale):
     
     return im_array_out
 
-def getcolormask(graymask):
+# Convert gray mask to color mask
+def getcolormask(inputmask):
     
-    lab=np.unique(graymask)
+    # Labels in the image    
+    lab=np.unique(inputmask)
     
+    # Image size
+    [w,l] = np.shape(inputmask)
     
-    [w,l] = np.shape(graymask)
+    # 3-Channel image
     colormask = np.zeros([w,l,3])
-    graymask = np.zeros([w,l,3])
     
-    colormask[graymask==lab[0]]=[0,0,0]
-    colormask[graymask==lab[1]]=[255,0,0]
-    colormask[graymask==lab[2]]=[0,255,0]
-    colormask[graymask==lab[3]]=[0,0,255]
-
-    for ind in range(2):
-        graymask[graymask==lab[ind]]=ind
-
+    # Gray level image
+    graymask = np.zeros([w,l]) 
     
+    # Color label (black, green, red, blue)
+    colorlabel=([0,0,0],[0,255,0],[255,0,0],[0,0,255]) # Colors
+    graylabel=[0,1,2,3] # Gray leves
+    
+    # Replace values in the image 
+    for lab in lab:
+        colormask[inputmask==lab]=colorlabel[np.int16(lab)]
+        graymask[inputmask==lab]=graylabel[np.int16(lab)]
+    
+    # Mask in color
     colormask=np.int16(colormask)
+    
+    # Mask in graylevel
     graymask=np.int16(graymask)
     
     
     return colormask,graymask
+
+# Jaccard Index
+def jaccarindex(grtr_mask,pred_mask,label):
     
+    grtr=np.zeros([512,512])
+    
+    grtr[grtr_mask==label]=1
+    
+    pred=np.zeros([512,512])
+    pred[pred_mask==label]=1
+    
+    inter= np.sum(grtr*pred>=1)
+    print(inter)
+    union=np.sum(grtr+pred>=1)
+    print(union)
+    jaccard=inter/union
+    
+    return jaccard
 
 
 #%%
-
-
 #for i in range(len(listfiles)):ç
 timeit()
 from time import time
@@ -264,3 +294,23 @@ for i in range(10000):
 
 # Calculate the elapsed time.
 elapsed_time = time() - start_time 
+
+#%%
+
+path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT/CT/'
+imCT=cv2.imread(path+im_name)
+
+from skimage import io, color
+
+#io.imshow(color.label2rgb(pred_mask,imCT,colors=[(0,255,0),(255,0,0),(0,0,255)],bg_label=0))
+
+
+#%%
+a=io.imshow(color.label2rgb(pred_mask,imCT,
+                          colors=[(0,255,0),(255,0,0),(0,0,255)],
+                          alpha=0.0005, bg_label=0, bg_color=None))
+plt.axis('off')
+
+
+#plt.show()
+#io.imshow()
