@@ -81,7 +81,7 @@ def Unet(img_height, img_width, nclasses, filters):
 
 model = Unet(512//scale, 512//scale, nclasses, filters)
 
-model.summary()
+#model.summary()
 
 #%%
 
@@ -113,77 +113,97 @@ def imoverlay(img,predimg,coloredge):
 
 
 path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
-destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages/Testing/Mask/Mask/'
+
+
+#destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
 listfiles = os.listdir(path)
+listfilesmask = os.listdir(pathmask)
 
 #%%
 
 #start_time = time()
-colormat=zeros([512,512])
+colormat=np.zeros([512,512])
 
-for i in range(39,40):
+#colormask=np.zeros([512,512,3])
+#grtrcolormask=np.zeros([512,512,3])
+
+grtr_mask=[] #Groundtruth mask
+classes = 4
+
+for i in range(25,30):
     
     # List of files
-    im_name = listfiles[i]
+    im_name = listfiles[i] # Gray level
+    im_namemask = listfilesmask[i] # Segmentation mask
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
     im_array=im_or
     
+    # Read ground truth Mask image (array)
+    grtr_mask=cv2.imread(pathmask+im_namemask)
     
-    #scale = 4
-    
-    # Image resize
-    im_array=cv2.resize(im_array,(512//scale,512//scale), 
-                        interpolation = cv2.INTER_AREA)
-    
-    # Image gray level normalization
-    im_array=im_array/np.max(im_array)
-    
-    # Adding one dimension to array
-    img_array = np.expand_dims(im_array,axis=[0])
+    # Convert RGB mask to Grayscale
+    grtr_mask = grtr_mask[:,:,0] 
+    grtr_mask = np.round(grtr_mask/255*classes)
+    grtr_mask[grtr_mask==4]=3 # Recuerde que asigno 3 a los valores 4 (Opcional)
+    grtr_mask2 =grtr_mask
+       
+    scale = 4
+    input_img_mdl = getprepareimg(im_array,scale)
     
     # Generate image prediction
-    pred_mask = model.predict(img_array)
+    pred_mask = model.predict(input_img_mdl)
     
-        # Image mask as (NxMx1) array
+    # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
 
-    pred_maskmulti=np.round(pred_mask*4)
+    pred_maskmulti=np.round(pred_mask*classes)
     pred_maskmulti=pred_maskmulti-1 #Classes: 0,1,2,3
 
-    
-      
-    # pred_mask=np.uint16(np.round(pred_mask>0.5))
-       
+    # Resize predicted mask
     pred_mask = cv2.resize(pred_maskmulti,(512,512), 
                           interpolation = cv2.INTER_AREA)
     
+    # Convert gray mask to color mask    
+    col_predmask,gray_predmask = getcolormask(pred_mask)
+    col_grtrmask,gray_grtrmask = getcolormask(grtr_mask)
     
-    for i in range(4):
-        colormat[pred_mask==i]=(255*i/3)
+    label_list = []
+    label_list = np.unique(grtr_mask.tolist() + pred_mask.tolist())
     
+    for label_list in label_list:
+        jacc=jaccarindex(grtr_mask,pred_mask,label_list)
+        print(jacc)
     
-    #backtorgb = cv2.cvtColor(colormat,cv2.COLOR_GRAY2RGB)
+    # jack=jaccarindex(grtr_mask,pred_mask,2)
+    # print(jack)
     
+    # jack=jaccarindex(grtr_mask,pred_mask,3)
+    # print(jack)
 
     
     plt.figure()
-    plt.subplot(1,2,1)
+    plt.subplot(1,3,1)
     plt.imshow(im_array,cmap='gray')
     plt.axis('off')
-    plt.subplot(1,2,2)    
-    plt.imshow(colormat,cmap='gray')
+    plt.title('Gray Level')
+    
+    plt.subplot(1,3,2)
+    plt.imshow(col_grtrmask,cmap='gray')
+    plt.axis('off')  
+    plt.title('Groundtruth')
+    
+    
+    plt.subplot(1,3,3)    
+    plt.imshow(col_predmask,cmap='gray')
     plt.axis('off')
+    plt.title('Predicted')
     plt.show()
 
-    
-    # plt.imshow(pred)
-    # plt.title('Predicted mask')
-    # plt.axis('off')     
-    # plt.show()
-    # plt.close()
 
+    
 #displayresults()
 
 #elapsed_time = time() - start_time
@@ -192,8 +212,74 @@ for i in range(39,40):
 
 #%%
 
+# Convert image in a tensor
+def getprepareimg(im_array,scale):
+    
+    # Resize image (Input array to segmentation model)
+    im_array=cv2.resize(im_array,(512//scale,512//scale), 
+                        interpolation = cv2.INTER_AREA)
+    
+    # Image gray level normalization
+    im_array=im_array/np.max(im_array)
+    
+    # Adding one dimension to array
+    im_array_out = np.expand_dims(im_array,axis=[0])
+    
+    return im_array_out
+
+# Convert gray mask to color mask
+def getcolormask(inputmask):
+    
+    # Labels in the image    
+    lab=np.unique(inputmask)
+    
+    # Image size
+    [w,l] = np.shape(inputmask)
+    
+    # 3-Channel image
+    colormask = np.zeros([w,l,3])
+    
+    # Gray level image
+    graymask = np.zeros([w,l]) 
+    
+    # Color label (black, green, red, blue)
+    colorlabel=([0,0,0],[0,255,0],[255,0,0],[0,0,255]) # Colors
+    graylabel=[0,1,2,3] # Gray leves
+    
+    # Replace values in the image 
+    for lab in lab:
+        colormask[inputmask==lab]=colorlabel[np.int16(lab)]
+        graymask[inputmask==lab]=graylabel[np.int16(lab)]
+    
+    # Mask in color
+    colormask=np.int16(colormask)
+    
+    # Mask in graylevel
+    graymask=np.int16(graymask)
+    
+    
+    return colormask,graymask
+
+# Jaccard Index
+def jaccarindex(grtr_mask,pred_mask,label):
+    
+    grtr=np.zeros([512,512])
+    
+    grtr[grtr_mask==label]=1
+    
+    pred=np.zeros([512,512])
+    pred[pred_mask==label]=1
+    
+    inter= np.sum(grtr*pred>=1)
+    print(inter)
+    union=np.sum(grtr+pred>=1)
+    print(union)
+    jaccard=inter/union
+    
+    return jaccard
 
 
+#%%
 #for i in range(len(listfiles)):ç
 timeit()
 from time import time
@@ -207,8 +293,24 @@ for i in range(10000):
 # Take the original function's return value.
 
 # Calculate the elapsed time.
-elapsed_time = time() - start_time
+elapsed_time = time() - start_time 
+
+#%%
+
+path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT/CT/'
+imCT=cv2.imread(path+im_name)
+
+from skimage import io, color
+
+#io.imshow(color.label2rgb(pred_mask,imCT,colors=[(0,255,0),(255,0,0),(0,0,255)],bg_label=0))
 
 
+#%%
+a=io.imshow(color.label2rgb(pred_mask,imCT,
+                          colors=[(0,255,0),(255,0,0),(0,0,255)],
+                          alpha=0.0005, bg_label=0, bg_color=None))
+plt.axis('off')
 
- 
+
+#plt.show()
+#io.imshow()
