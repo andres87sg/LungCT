@@ -169,9 +169,8 @@ for i in range(39,40):
     # Convert gray mask to color mask    
     predcolormask = getcolormask(pred_mask)
     grtrcolormask = getcolormask(grtr_mask)
-
     
-
+    
     
     plt.figure()
     plt.subplot(1,3,1)
