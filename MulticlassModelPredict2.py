@@ -131,7 +131,7 @@ colormat=np.zeros([512,512])
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-for i in range(25,30):
+for i in range(25,40):
     
     # List of files
     im_name = listfiles[i] # Gray level
@@ -270,10 +270,13 @@ def jaccarindex(grtr_mask,pred_mask,label):
     pred=np.zeros([512,512])
     pred[pred_mask==label]=1
     
+    # Intersection
     inter= np.sum(grtr*pred>=1)
-    print(inter)
+    #print(inter)
+    
+    # Union
     union=np.sum(grtr+pred>=1)
-    print(union)
+    #print(union)
     jaccard=inter/union
     
     return jaccard
@@ -302,15 +305,10 @@ imCT=cv2.imread(path+im_name)
 
 from skimage import io, color
 
-#io.imshow(color.label2rgb(pred_mask,imCT,colors=[(0,255,0),(255,0,0),(0,0,255)],bg_label=0))
-
-
-#%%
 a=io.imshow(color.label2rgb(pred_mask,imCT,
-                          colors=[(0,255,0),(255,0,0),(0,0,255)],
-                          alpha=0.0005, bg_label=0, bg_color=None))
+                          colors=[(0,0,0),(255,0,0),(0,0,255)],
+                          alpha=0.0015, bg_label=0, bg_color=None))
 plt.axis('off')
 
+#https://stackoverflow.com/questions/57576686/how-to-overlay-segmented-image-on-top-of-main-image-in-python
 
-#plt.show()
-#io.imshow()
