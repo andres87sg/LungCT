@@ -32,7 +32,7 @@ patient_no = 8
 origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
 listfiles = os.listdir(origpath)
 destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/val_dcm/'
-#patient = 'patient1'
+#patient = 'patient1a'
 
 model_multiclass=load_model('multiclass_seg_mdl.h5')
 model_lungsegmentation=load_model('lng_seg_mdl.h5')
