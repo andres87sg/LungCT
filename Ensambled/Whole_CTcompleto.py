@@ -5,12 +5,13 @@ Modified on 12/05/2021
 
 """
 #%%
- 
+# Install gdcm 
 import pydicom as dicom
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import os
+from time import time
 
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -23,25 +24,40 @@ from tensorflow.keras import Model
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 
 #%%
+import pydicom as dicom
+import matplotlib.pyplot as plt
+import cv2
+import numpy as np
+import os
 
-case='22474FA3'
+#%%
+
+#case='22474FA3'
+#case='22474FA3'
 patient_no = 8
 
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/2DAAC5E5/'
+
+#origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
 listfiles = os.listdir(origpath)
-destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/val_dcm/'
 #patient = 'patient1a'
 
-model_multiclass=load_model('C:/Users/Andres/Desktop/CTClassif/multiclass_seg_mdl3.h5')
+#%%
+model_multiclass=load_model('C:/Users/Andres/Desktop/CTClassif/multiclass_seg_mdl.h5')
 model_lungsegmentation=load_model('C:/Users/Andres/Desktop/CTClassif/lng_seg_mdl.h5')
 
 #%%
 
+# Start counting
+start_time = time() 
+
 dcmimages=[]
+maskimages=[]
 
 scale = 4
 
 for i in range(len(listfiles)):
+#for i in range(30,36):
 
     """
     Step 1 -> Prepare dcm image into Lung windows (WW=-500, WW=1500)
@@ -63,7 +79,8 @@ for i in range(len(listfiles)):
     im_dcm=cv2.resize(norm_img,(512,512), 
                         interpolation = cv2.INTER_AREA)    
     # Append CT slices
-    dcmimages.append(im_dcm)
+    #dcmimages.append(im_dcm)
+    dcmimages.append(norm_img[:,:,0])
 
     """
     Step 2 -> Lungs segmentation
@@ -84,6 +101,7 @@ for i in range(len(listfiles)):
     
     # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
+    #pred_mask[pred_mask==0]=1
     
     # Resize predicted mask
     pred_mask = np.round(cv2.resize(pred_mask,(512,512), 
@@ -124,9 +142,20 @@ for i in range(len(listfiles)):
     pred_graymaskfinal = cv2.resize(gray_predmask,(ln,wn), 
                        interpolation = cv2.INTER_AREA)
     
-    # Show resutls
+    maskimages.append(pred_graymaskfinal)
+    
+# Finish counting
+elapsed_time = time() - start_time 
+print(elapsed_time)
+
+minutes=np.floor(elapsed_time/60)
+
+#%% Show results
+    
+for i in range(len(dcmimages)):
+    
     plt.show()
-    plt.imshow(color.label2rgb(pred_graymaskfinal,norm_img[:,:,0],
+    plt.imshow(color.label2rgb(maskimages[i],dcmimages[i],
                           colors=[(0,0,0),(255,0,0),(0,0,255)],
                           alpha=0.0015, bg_label=0, bg_color=None))
     plt.axis("off")
@@ -223,3 +252,22 @@ def window_img_transf(image, win_center, win_width):
     window_image_gl=np.uint8(window_image_gl)
         
     return window_image_gl
+
+#%%
+
+from time import time
+#timeit()
+
+start_time = time()
+
+for i in range(10000):
+    print(i)
+    
+    
+
+# Take the original function's return value.
+
+# Calculate the elapsed time.
+elapsed_time = time() - start_time
+
+
