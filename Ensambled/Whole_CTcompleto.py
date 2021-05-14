@@ -148,7 +148,10 @@ for i in range(len(listfiles)):
 elapsed_time = time() - start_time 
 print(elapsed_time)
 
-minutes=np.floor(elapsed_time/60)
+minutes=np.round(np.floor(elapsed_time/60),0)
+seconds=np.round((elapsed_time/60-minutes)*60,0)
+print(str(minutes)+' minutes '+ str(seconds) + ' seconds ')
+
 
 #%% Show results
     
