@@ -12,6 +12,8 @@ Created on Wed May 12 15:37:00 2021
 def dcm_convert(dcm_dir,dcmfilename,WL,WW): 
     
     import pydicom as dicom
+    import numpy as np
+    import cv2 
    
     img_path = dcm_dir+dcmfilename
 
@@ -28,7 +30,7 @@ def dcm_convert(dcm_dir,dcmfilename,WL,WW):
     # Compute an image in a window (Lung Window)
     window_img = window_img_transf(hu_img,WL,WW)
     
-    w,l = np.shape(window_img)
+    w,l = numpy.shape(window_img)
 
     window_img = cv2.resize(window_img,(w,l), 
                         interpolation = cv2.INTER_AREA)
