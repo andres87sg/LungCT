@@ -32,8 +32,8 @@ listfiles = os.listdir(origpath)
 destpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/dcm2png/val_dcm/'
 #patient = 'patient1a'
 
-model_multiclass=load_model('multiclass_seg_mdl.h5')
-model_lungsegmentation=load_model('lng_seg_mdl.h5')
+model_multiclass=load_model('C:/Users/Andres/Desktop/CTClassif/multiclass_seg_mdl3.h5')
+model_lungsegmentation=load_model('C:/Users/Andres/Desktop/CTClassif/lng_seg_mdl.h5')
 
 #%%
 
@@ -41,8 +41,8 @@ dcmimages=[]
 
 scale = 4
 
-#for i in range(len(listfiles)):
-for i in range(30,31):
+for i in range(len(listfiles)):
+#for i in range(29,30):
 
     """
     Step 1 -> Prepare dcm image into Lung windows (WW=-500, WW=1500)
@@ -58,19 +58,20 @@ for i in range(30,31):
     # Convert dcm image to image in Lung Window, output:
     # normalized image, instance number
     [norm_img, ins_num] = dcm_convert(origpath,dcmfilename,WL_WW[0],WL_WW[1])  
-      
+    [wn,ln,ch]=norm_img.shape
+    
     # Resize Image
-    im_array=cv2.resize(norm_img,(512,512), 
+    im_dcm=cv2.resize(norm_img,(512,512), 
                         interpolation = cv2.INTER_AREA)    
     # Append CT slices
-    dcmimages.append(im_array)
+    dcmimages.append(im_dcm)
 
     """
     Step 2 -> Lungs segmentation
     """
 
     # Prepare input image as input in the model 
-    inputimg=cv2.resize(im_array,(512//scale,512//scale), 
+    inputimg=cv2.resize(im_dcm,(512//scale,512//scale), 
                         interpolation = cv2.INTER_AREA)
       
     # Input image normalization imnorm = im/max(im)
@@ -90,7 +91,7 @@ for i in range(30,31):
                        interpolation = cv2.INTER_AREA))
     
     # Lungs segmentation
-    segmentedlungs=im_array
+    segmentedlungs=im_dcm.copy()
     segmentedlungs[pred_mask==0]=0
     
     """
@@ -117,19 +118,19 @@ for i in range(30,31):
     # Predicted mask : color and gray
     col_predmask,gray_predmask = getcolormask(pred_maskmulti)
     
-    # Resize segmentation mask
-    pred_colmaskfinal = cv2.resize(col_predmask,(512,512), 
+    # Resize segmentation mask (wn,ln from original image [norm_img])
+    pred_colmaskfinal = cv2.resize(col_predmask,(ln,wn), 
                            interpolation = cv2.INTER_AREA)
     
-    pred_graymaskfinal = cv2.resize(gray_predmask,(512,512), 
+    pred_graymaskfinal = cv2.resize(gray_predmask,(ln,wn), 
                        interpolation = cv2.INTER_AREA)
     
     # Show resutls
-    plt.figure()
-    io.imshow(color.label2rgb(pred_graymaskfinal,im1[:,:,0],
+    plt.show()
+    plt.imshow(color.label2rgb(pred_graymaskfinal,norm_img[:,:,0],
                           colors=[(0,0,0),(255,0,0),(0,0,255)],
                           alpha=0.0015, bg_label=0, bg_color=None))
-    plt.axis('off')
+    plt.axis("off")
 
 
 #%%
@@ -167,7 +168,6 @@ def getcolormask(inputmask):
     
     return colormask,graymask
 
-#%%
 
 def dcm_convert(dcm_dir,dcmfilename,WL,WW): 
    
@@ -186,10 +186,10 @@ def dcm_convert(dcm_dir,dcmfilename,WL,WW):
     # Compute an image in a window (Lung Window)
     window_img = window_img_transf(hu_img,WL,WW)
     
-    w,l = np.shape(window_img)
+    #w,l = np.shape(window_img)
 
-    window_img = cv2.resize(window_img,(w,l), 
-                        interpolation = cv2.INTER_AREA)
+    #window_img = cv2.resize(window_img,(w,l), 
+    #                    interpolation = cv2.INTER_AREA)
     
     window_img= cv2.cvtColor(window_img,cv2.COLOR_GRAY2RGB)
 
