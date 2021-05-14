@@ -155,14 +155,36 @@ print(str(minutes)+' minutes '+ str(seconds) + ' seconds ')
 
 #%% Show results
     
-for i in range(len(dcmimages)):
+from PIL import Image, ImageDraw
+
+pp=[]
+
+for i in range(1,len(dcmimages)-1):
+#for i in range(1,90):
     
-    plt.show()
-    plt.imshow(color.label2rgb(maskimages[i],dcmimages[i],
-                          colors=[(0,0,0),(255,0,0),(0,0,255)],
-                          alpha=0.0015, bg_label=0, bg_color=None))
+    # overlapimg=color.label2rgb(maskimages[i],dcmimages[i],
+    #                       colors=[(0,0,0),(255,0,0),(0,0,255)],
+    #                       alpha=0.0015, bg_label=0, bg_color=None)
+
+    overlapimg=color.label2rgb(maskimages[i],dcmimages[i],
+                          colors=[(0,0,0),(0,0,255),(255,0,0)],
+                          alpha=0.0015, bg_label=0, bg_color=None)    
+    
+        
+    overlapimg[:,:,0]=overlapimg[:,:,0]*255
+    overlapimg[:,:,1]=overlapimg[:,:,1]*255
+    overlapimg[:,:,2]=overlapimg[:,:,2]*255
+    
+    
+    im1 = cv2.imwrite("over.jpg",overlapimg)
+    im2 = Image.open('over.jpg')
+    
+    plt.imshow(im2)
+    pp.append(im2)
     plt.axis("off")
 
+    # Color label (black, green, red, blue)
+    # colorlabel=([0,0,0],[0,255,0],[255,0,0],[0,0,255]) # Colors
 
 #%%
 
