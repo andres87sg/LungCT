@@ -29,7 +29,7 @@ from timeit import timeit
 
 scale = 4
 filters= 32
-nclasses= 3
+nclasses= 4
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
     x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(tensor)
@@ -87,9 +87,9 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 # Loading model weights
 
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped.h5')
+model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
 
-
+model.save('multiclass_seg_mdl3.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
