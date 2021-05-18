@@ -36,7 +36,7 @@ import os
 #case='22474FA3'
 patient_no = 8
 
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/2DAAC5E5/'
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
 listfiles = os.listdir(origpath)
@@ -179,12 +179,20 @@ for i in range(1,len(dcmimages)-1):
     im1 = cv2.imwrite("over.jpg",overlapimg)
     im2 = Image.open('over.jpg')
     
+    plt.show()
     plt.imshow(im2)
     pp.append(im2)
     plt.axis("off")
 
     # Color label (black, green, red, blue)
     # colorlabel=([0,0,0],[0,255,0],[255,0,0],[0,0,255]) # Colors
+
+#%%
+
+pp[0].save('C:/Users/Andres/Desktop/109BB5EC.gif',
+               save_all=True, append_images=pp[1:], optimize=False, duration=200, loop=0)
+
+
 
 #%%
 
