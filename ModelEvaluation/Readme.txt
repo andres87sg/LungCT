@@ -1,2 +1,3 @@
 Model Evaluation
-- Compute evaluation metrics (Jaccard Index) - MulticlassModelPredict2.py
+**mdl_valid_metrics.py
+	Compute validation metrics in multiclass

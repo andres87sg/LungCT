@@ -152,17 +152,14 @@ for i in range(len(listfiles)):
 #%% Show validation metrics (Jaccard Index (mean,std) )
 
 '''
-Class0: Background
-Class1: Healty lung
-Class2: Ground-glass opacity
-Class3: Consolidation
+Bkg: Background
+Lung: Healty lung
+GGO: Ground-glass opacity
+Cons: Consolidation
 '''
-classnames=['Class0','Class1','Class2','Class3']
+classnames=['Bkg','Lung','GGO','Cons']
 
 df = pd.DataFrame(jaccard_df, columns = classnames)
-
-
-
 
 for i in range(4):
     meanvalue=np.round(
