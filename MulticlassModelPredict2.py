@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Compute Metrics
+
 @author: Andres Sandino
 
 https://stackoverflow.com/questions/53248099/keras-image-segmentation-using-grayscale-masks-and-imagedatagenerator-class
@@ -89,7 +91,7 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
 
-model.save('multiclass_seg_mdl3.h5')
+#model.save('multiclass_seg_mdl3.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -131,7 +133,7 @@ colormat=np.zeros([512,512])
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-for i in range(25,40):
+for i in range(25,26):
     
     # List of files
     im_name = listfiles[i] # Gray level
