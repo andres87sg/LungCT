@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Compute Metrics
+
 @author: Andres Sandino
 
 https://stackoverflow.com/questions/53248099/keras-image-segmentation-using-grayscale-masks-and-imagedatagenerator-class
@@ -20,6 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import cv2
+import pandas as pd
 
 import timeit as timeit
 from timeit import timeit
@@ -89,7 +92,7 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
 
-model.save('multiclass_seg_mdl3.h5')
+#model.save('multiclass_seg_mdl3.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -131,7 +134,12 @@ colormat=np.zeros([512,512])
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-for i in range(25,40):
+jaccard_df=[]
+
+
+
+#for i in range(1,25):
+for i in range(len(listfiles)):
     
     # List of files
     im_name = listfiles[i] # Gray level
@@ -172,11 +180,18 @@ for i in range(25,40):
     
     label_list = []
     label_list = np.unique(grtr_mask.tolist() + pred_mask.tolist())
+    jaccard_list=[np.nan,np.nan,np.nan,np.nan] # Empty list
+  
     
     for label_list in label_list:
-        jacc=jaccarindex(grtr_mask,pred_mask,label_list)
-        print(jacc)
+        index = int(label_list)
+        #print(index)
+        jaccard_list[index]=jaccarindex(grtr_mask,pred_mask,label_list)
+        
+        
+        #print(jaccard_list[index])
     
+    jaccard_df.append(jaccard_list)
     # jack=jaccarindex(grtr_mask,pred_mask,2)
     # print(jack)
     
@@ -203,7 +218,34 @@ for i in range(25,40):
     plt.show()
 
 
-    
+df = pd.DataFrame(jaccard_df, columns = ['Class0','Class1','Class2','Class3'])
+a=df.iloc[:,0].values
+b=df.iloc[:,1].values
+c=df.iloc[:,2].values
+d=df.iloc[:,3].values
+
+
+#%%
+
+classnames=['Class0: ','Class1: ','Class2: ','Class3: ']
+
+for i in range(4):
+    meanvalue=np.round(
+        np.mean(df.iloc[:,i].values[~np.isnan(df.iloc[:,i].values)]),3
+        )
+    stdvalue=np.round(
+        np.std(df.iloc[:,i].values[~np.isnan(df.iloc[:,i].values)]),4
+        )
+    print(classnames[i] + str(meanvalue) + ' +- ' + str(stdvalue))
+
+#meanvalue=np.round(np.mean(a[~np.isnan(a)]),3)
+#stdvalue=np.round(np.std(a[~np.isnan(a)]),4)
+
+
+#np.mean(b[~np.isnan(b)])
+#np.mean(c[~np.isnan(c)])
+#np.mean(d[~np.isnan(d)])
+
 #displayresults()
 
 #elapsed_time = time() - start_time
@@ -265,6 +307,7 @@ def jaccarindex(grtr_mask,pred_mask,label):
     
     grtr=np.zeros([512,512])
     
+    # Choose pixels corresponding to label
     grtr[grtr_mask==label]=1
     
     pred=np.zeros([512,512])
