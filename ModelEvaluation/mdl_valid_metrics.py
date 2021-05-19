@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Compute Metrics
+Compute Validation metrics
+Jaccard Index
 
 @author: Andres Sandino
 
@@ -27,72 +28,11 @@ import pandas as pd
 import timeit as timeit
 from timeit import timeit
 
-    
-#%% Model
 
-scale = 4
-filters= 32
-nclasses= 4
-    
-def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
-    x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(tensor)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    return x
+#%% Loading model 
+modelpath = 'C:/Users/Andres/Desktop/CTClassif/multiclass_seg_mdl3.h5'
+model = keras.models.load_model(modelpath)
 
-
-def deconv_block(tensor, residual, nfilters, size=3, padding='same', strides=(2, 2)):
-    y = Conv2DTranspose(nfilters, kernel_size=(size, size), strides=strides, padding=padding)(tensor)
-    y = tf.concat([y, residual], axis=3)
-    y = conv_block(y, nfilters)
-    return y
-
-
-def Unet(img_height, img_width, nclasses, filters):
-# down
-    input_layer = Input(shape=(img_height, img_width, 3), name='image_input')
-    conv1 = conv_block(input_layer, nfilters=filters)
-    conv1_out = MaxPooling2D(pool_size=(2, 2))(conv1)
-    conv2 = conv_block(conv1_out, nfilters=filters*2)
-    conv2_out = MaxPooling2D(pool_size=(2, 2))(conv2)
-    conv3 = conv_block(conv2_out, nfilters=filters*4)
-    conv3_out = MaxPooling2D(pool_size=(2, 2))(conv3)
-    conv4 = conv_block(conv3_out, nfilters=filters*8)
-    conv4_out = MaxPooling2D(pool_size=(2, 2))(conv4)
-    conv4_out = Dropout(0.5)(conv4_out)
-    conv5 = conv_block(conv4_out, nfilters=filters*16)
-    conv5 = Dropout(0.5,name='BOTTLENECK')(conv5)
-# up
-    deconv6 = deconv_block(conv5, residual=conv4, nfilters=filters*8)
-    deconv6 = Dropout(0.5)(deconv6)
-    deconv7 = deconv_block(deconv6, residual=conv3, nfilters=filters*4)
-    deconv7 = Dropout(0.5)(deconv7) 
-    deconv8 = deconv_block(deconv7, residual=conv2, nfilters=filters*2)
-    deconv9 = deconv_block(deconv8, residual=conv1, nfilters=filters)
-# output
-    output_layer = Conv2D(filters=1, kernel_size=(1, 1))(deconv9)
-    output_layer = BatchNormalization()(output_layer)
-    output_layer = Activation('sigmoid')(output_layer)
-
-    model = Model(inputs=input_layer, outputs=output_layer, name='Unet')
-    return model
-
-
-
-model = Unet(512//scale, 512//scale, nclasses, filters)
-
-#model.summary()
-
-#%%
-
-# Loading model weights
-
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
-
-#model.save('multiclass_seg_mdl3.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -112,8 +52,7 @@ def imoverlay(img,predimg,coloredge):
     
     return overlayimg
 
-#%% Visualizacion de resultados (No es necesario correr esta sección)
-
+#%% Main 
 
 path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
 pathmask = 'C:/Users/Andres/Desktop/CovidImages/Testing/Mask/Mask/'
@@ -123,22 +62,15 @@ pathmask = 'C:/Users/Andres/Desktop/CovidImages/Testing/Mask/Mask/'
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-#%%
 
-#start_time = time()
 colormat=np.zeros([512,512])
-
-#colormask=np.zeros([512,512,3])
-#grtrcolormask=np.zeros([512,512,3])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
 
-jaccard_df=[]
+jaccard_df=[] #Jaccard index dataframe
 
-
-
-#for i in range(1,25):
+#for i in range(1,3):
 for i in range(len(listfiles)):
     
     # List of files
@@ -217,17 +149,20 @@ for i in range(len(listfiles)):
     plt.title('Predicted')
     plt.show()
 
+#%% Show validation metrics (Jaccard Index (mean,std) )
 
-df = pd.DataFrame(jaccard_df, columns = ['Class0','Class1','Class2','Class3'])
-a=df.iloc[:,0].values
-b=df.iloc[:,1].values
-c=df.iloc[:,2].values
-d=df.iloc[:,3].values
+'''
+Class0: Background
+Class1: Healty lung
+Class2: Ground-glass opacity
+Class3: Consolidation
+'''
+classnames=['Class0','Class1','Class2','Class3']
+
+df = pd.DataFrame(jaccard_df, columns = classnames)
 
 
-#%%
 
-classnames=['Class0: ','Class1: ','Class2: ','Class3: ']
 
 for i in range(4):
     meanvalue=np.round(
@@ -236,21 +171,7 @@ for i in range(4):
     stdvalue=np.round(
         np.std(df.iloc[:,i].values[~np.isnan(df.iloc[:,i].values)]),4
         )
-    print(classnames[i] + str(meanvalue) + ' +- ' + str(stdvalue))
-
-#meanvalue=np.round(np.mean(a[~np.isnan(a)]),3)
-#stdvalue=np.round(np.std(a[~np.isnan(a)]),4)
-
-
-#np.mean(b[~np.isnan(b)])
-#np.mean(c[~np.isnan(c)])
-#np.mean(d[~np.isnan(d)])
-
-#displayresults()
-
-#elapsed_time = time() - start_time
-
-
+    print(classnames[i]+ ': ' + str(meanvalue) + ' +- ' + str(stdvalue))
 
 #%%
 
