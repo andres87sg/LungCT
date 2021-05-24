@@ -30,7 +30,7 @@ from timeit import timeit
     
 #%% Model
 
-scale = 4
+scale = 8
 filters= 32
 nclasses= 4
     
@@ -90,9 +90,10 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 # Loading model weights
 
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
+#model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
+#model.load_weights('C:/Users/Andres/Desktop/LungInf_SF8_Filt32.h5')
 
-#model.save('multiclass_seg_mdl3.h5')
+model.save('C:/Users/Andres/Desktop/LungInf_SF8_Filt32_Python.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -138,8 +139,8 @@ jaccard_df=[]
 
 
 
-#for i in range(1,25):
-for i in range(len(listfiles)):
+for i in range(24,25):
+#for i in range(len(listfiles)):
     
     # List of files
     im_name = listfiles[i] # Gray level
@@ -158,11 +159,12 @@ for i in range(len(listfiles)):
     grtr_mask[grtr_mask==4]=3 # Recuerde que asigno 3 a los valores 4 (Opcional)
     grtr_mask2 =grtr_mask
        
-    scale = 4
+    scale = 8
     input_img_mdl = getprepareimg(im_array,scale)
     
     # Generate image prediction
     pred_mask = model.predict(input_img_mdl)
+    pred_mask2 = model.predict(input_img_mdl)
     
     # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]

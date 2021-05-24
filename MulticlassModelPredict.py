@@ -28,8 +28,8 @@ from timeit import timeit
 #%% Model
 
 scale = 4
-filters= 32
-nclasses= 3
+filters= 64
+nclasses= 4
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
     x = Conv2D(filters=nfilters, kernel_size=(size, size), padding=padding, kernel_initializer=initializer)(tensor)
@@ -87,8 +87,8 @@ model.summary()
 
 # Loading model weights
 
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped.h5')
-
+#model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped.h5')
+model.load_weights('C:/Users/Andres/Desktop/LungInf_SF4_Filt64.h5')
 
 #%%
 
@@ -119,7 +119,7 @@ listfiles = os.listdir(path)
 #%%
 
 #start_time = time()
-colormat=zeros([512,512])
+#colormat=np.zeros([512,512])
 
 for i in range(39,40):
     
