@@ -30,8 +30,8 @@ from timeit import timeit
     
 #%% Model
 
-scale = 8
-filters= 32
+scale = 4
+filters= 64
 nclasses= 4
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
@@ -91,9 +91,9 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 # Loading model weights
 
 #model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
-#model.load_weights('C:/Users/Andres/Desktop/LungInf_SF8_Filt32.h5')
+#model.load_weights('C:/Users/Andres/Desktop/LungInf_SF4_Filt64.h5')
 
-model.save('C:/Users/Andres/Desktop/LungInf_SF8_Filt32_Python.h5')
+model.save('C:/Users/Andres/Desktop/LungInf_SF4_Filt64_Python.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -134,12 +134,13 @@ colormat=np.zeros([512,512])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
+scale = 4
 
 jaccard_df=[]
 
 
 
-for i in range(24,25):
+for i in range(2,25):
 #for i in range(len(listfiles)):
     
     # List of files
@@ -159,7 +160,7 @@ for i in range(24,25):
     grtr_mask[grtr_mask==4]=3 # Recuerde que asigno 3 a los valores 4 (Opcional)
     grtr_mask2 =grtr_mask
        
-    scale = 8
+
     input_img_mdl = getprepareimg(im_array,scale)
     
     # Generate image prediction

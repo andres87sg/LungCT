@@ -30,7 +30,7 @@ from timeit import timeit
 
 
 #%% Loading model 
-modelpath = 'C:/Users/Andres/Desktop/CTClassif/LungInf_SF8_Filt32_Python.h5'
+modelpath = 'C:/Users/Andres/Desktop/CTClassif/LungInf_SF4_Filt64_Python.h5'
 model = keras.models.load_model(modelpath)
 
 #%%
@@ -67,6 +67,7 @@ colormat=np.zeros([512,512])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
+scale = 4
 
 jaccard_df=[] #Jaccard index dataframe
 
@@ -90,7 +91,7 @@ for i in range(len(listfiles)):
     grtr_mask[grtr_mask==4]=3 # Recuerde que asigno 3 a los valores 4 (Opcional)
     grtr_mask2 =grtr_mask
        
-    scale = 8
+    
     input_img_mdl = getprepareimg(im_array,scale)
     
     # Generate image prediction
