@@ -28,16 +28,16 @@ name = 'Estudio'+str(patient_no)
 # Origin path and filename
 
 # CT Image
-path = 'C:/Users/Andres/Desktop/CTAnotado/imagenes/Dr Quintana/'
+path = 'C:/Users/Andres/Desktop/CTAnotadoRectificado/CT/'
 filename = name + '.nii'
 
 # Mask Image
-path_mask = 'C:/Users/Andres/Desktop/CTAnotado/resultados/Dr Quintana/'
+path_mask = 'C:/Users/Andres/Desktop/CTAnotadoRectificado/mask/'
 filename_mask = 'mask'+ name + '.nii'
 
 # Dest path
-destpath = 'C:/Users/Andres/Desktop/CovidImages/CT/' 
-destpath_mask = 'C:/Users/Andres/Desktop/CovidImages/Mask/' 
+destpath = 'C:/Users/Andres/Desktop/CovidImages2/CT/' 
+destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/Mask/' 
 
 # Load Images
 img = nib.load(path+filename)
