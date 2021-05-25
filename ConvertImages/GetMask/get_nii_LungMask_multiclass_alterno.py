@@ -7,7 +7,7 @@ Modified on May 05 2021
 
 Convert "nii" image format in "png" in Lung WW=-500,WL=1500
 """
-#%%
+#%% Step 1
 
 import os
 import numpy as np
@@ -17,7 +17,7 @@ import cv2
 import nibabel as nib
 
 # Patient number
-patient_no = 30
+patient_no = 2
 
 # bkg=0, class1=1, class2=2
 # Include background as a class
@@ -33,7 +33,7 @@ filename = name + '.nii'
 
 # Mask Image
 path_mask = 'C:/Users/Andres/Desktop/CTAnotadoRectificado/mask/'
-filename_mask = 'mask'+ name + '.nii'
+filename_mask = 'maskmask'+ name + '.nii'
 
 # Dest path
 destpath = 'C:/Users/Andres/Desktop/CovidImages2/CT/' 
@@ -54,7 +54,8 @@ imgformat = '.png'
 im_mask_array=np.array(img_mask)
 im_array=np.array(img)
     
-#%%
+#%% Define functions
+
 def nii2png(im_array,numslices,indslic,patient_no,destpath):
         # Recuerde que está al revés la numeración
     img_array = img[:,:,numslices-1-indslic]
@@ -144,7 +145,7 @@ def window_img_transf(image, win_center, win_width):
         
     return window_image_gl
 
-#%%
+#%% Step 2
 
 [width,length,numslices]=np.shape(im_array)
 #[m,n,t]=np.shape(im_array)
