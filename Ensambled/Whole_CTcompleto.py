@@ -43,7 +43,7 @@ listfiles = os.listdir(origpath)
 #patient = 'patient1a'
 
 #%%
-model_multiclass=load_model('C:/Users/Andres/Desktop/CTClassif/multiclass_seg_mdl.h5')
+model_multiclass=load_model('C:/Users/Andres/Desktop/CTClassif/LungInf_SF2_Filt64_Python.h5')
 model_lungsegmentation=load_model('C:/Users/Andres/Desktop/CTClassif/lng_seg_mdl.h5')
 
 #%%
@@ -54,7 +54,7 @@ start_time = time()
 dcmimages=[]
 maskimages=[]
 
-scale = 4
+
 
 for i in range(len(listfiles)):
 #for i in range(30,36):
@@ -85,7 +85,7 @@ for i in range(len(listfiles)):
     """
     Step 2 -> Lungs segmentation
     """
-
+    scale = 4
     # Prepare input image as input in the model 
     inputimg=cv2.resize(im_dcm,(512//scale,512//scale), 
                         interpolation = cv2.INTER_AREA)
@@ -114,7 +114,8 @@ for i in range(len(listfiles)):
     """
     Step 3 -> Segment consolidation and ground-glass opacity segmentation
     """
-    scale = 4
+    scale = 2
+    
     lungs_array=cv2.resize(segmentedlungs,(512//scale,512//scale), 
                         interpolation = cv2.INTER_AREA)
     
@@ -194,7 +195,7 @@ pp[0].save('C:/Users/Andres/Desktop/109BB5EC.gif',
 
 
 
-#%%
+#%% Function
 
 # Convert gray mask to color mask
 def getcolormask(inputmask):
@@ -286,21 +287,5 @@ def window_img_transf(image, win_center, win_width):
         
     return window_image_gl
 
-#%%
-
-from time import time
-#timeit()
-
-start_time = time()
-
-for i in range(10000):
-    print(i)
-    
-    
-
-# Take the original function's return value.
-
-# Calculate the elapsed time.
-elapsed_time = time() - start_time
 
 

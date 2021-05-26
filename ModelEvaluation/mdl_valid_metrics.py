@@ -30,7 +30,7 @@ from timeit import timeit
 
 
 #%% Loading model 
-modelpath = 'C:/Users/Andres/Desktop/CTClassif/LungInf_SF4_Filt64_Python.h5'
+modelpath = 'C:/Users/Andres/Desktop/CTClassif/LungInf_SF2_Filt64_Python_25052021.h5'
 model = keras.models.load_model(modelpath)
 
 #%%
@@ -54,8 +54,8 @@ def imoverlay(img,predimg,coloredge):
 
 #%% Main 
 
-path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages/Testing/Mask/Mask/'
+path = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 
 
 #destpath = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT2/CT/'
@@ -67,7 +67,7 @@ colormat=np.zeros([512,512])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
-scale = 4
+scale = 2
 
 jaccard_df=[] #Jaccard index dataframe
 
@@ -261,6 +261,8 @@ for i in range(10000):
 elapsed_time = time() - start_time 
 
 #%%
+
+im_name = 'P0002_Im0064.png'
 
 path = 'C:/Users/Andres/Desktop/CovidImages/Testing/CT/CT/'
 imCT=cv2.imread(path+im_name)

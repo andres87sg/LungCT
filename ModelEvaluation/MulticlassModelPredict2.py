@@ -30,8 +30,9 @@ from timeit import timeit
     
 #%% Model
 
-scale = 4
+scale = 2
 filters= 64
+
 nclasses= 4
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
@@ -91,9 +92,9 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 # Loading model weights
 
 #model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
-#model.load_weights('C:/Users/Andres/Desktop/LungInf_SF4_Filt64.h5')
+model.load_weights('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_26052021.h5')
 
-model.save('C:/Users/Andres/Desktop/LungInf_SF4_Filt64_Python.h5')
+#model.save('C:/Users/Andres/Desktop/LungInf_SF4_Filt64_25052021.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -134,13 +135,13 @@ colormat=np.zeros([512,512])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
-scale = 4
+scale = 2
 
 jaccard_df=[]
 
 
 
-for i in range(2,25):
+for i in range(24,25):
 #for i in range(len(listfiles)):
     
     # List of files
