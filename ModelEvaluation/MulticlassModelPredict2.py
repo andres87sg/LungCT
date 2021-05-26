@@ -92,9 +92,9 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 # Loading model weights
 
 #model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
-model.load_weights('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_26052021.h5')
+#model.load_weights('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_26052021.h5')
 
-#model.save('C:/Users/Andres/Desktop/LungInf_SF4_Filt64_25052021.h5')
+model.save('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_Python_25052021.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
