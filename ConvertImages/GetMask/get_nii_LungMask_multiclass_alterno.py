@@ -17,7 +17,7 @@ import cv2
 import nibabel as nib
 
 # Patient number
-patient_no = 2
+patient_no = 38
 
 # bkg=0, class1=1, class2=2
 # Include background as a class
@@ -53,6 +53,24 @@ imgformat = '.png'
 # Convert *.nii in array
 im_mask_array=np.array(img_mask)
 im_array=np.array(img)
+
+
+[width,length,numslices]=np.shape(im_array)
+#[m,n,t]=np.shape(im_array)
+
+for ind in range(numslices):
+    
+    flag=createmask(im_mask_array,numslices,ind,classes,patient_no,destpath_mask)
+    #print(str(flag))
+    
+    if flag == 1:
+        
+        # Convert image
+        nii2png(im_array,numslices,ind,patient_no,destpath)
+    
+print('The process has ended')
+print('patient No: '+str(patient_no))
+
     
 #%% Define functions
 
@@ -91,7 +109,6 @@ def nii2png(im_array,numslices,indslic,patient_no,destpath):
     cv2.imwrite(destpath+destfilename, norm_img)
     #print(destfilename)
 
-#%%
 def createmask(im_array,numslices,i,classes,patient_no,destpath_mask):    
     
     #print(i)
@@ -124,8 +141,6 @@ def createmask(im_array,numslices,i,classes,patient_no,destpath_mask):
     
     return flag
 
-#%%
-
 def window_img_transf(image, win_center, win_width):
     
     img_min = win_center - win_width // 2
@@ -145,19 +160,3 @@ def window_img_transf(image, win_center, win_width):
         
     return window_image_gl
 
-#%% Step 2
-
-[width,length,numslices]=np.shape(im_array)
-#[m,n,t]=np.shape(im_array)
-
-for ind in range(numslices):
-    
-    flag=createmask(im_mask_array,numslices,ind,classes,patient_no,destpath_mask)
-    #print(str(flag))
-    
-    if flag == 1:
-        
-        # Convert image
-        nii2png(im_array,numslices,ind,patient_no,destpath)
-    
-print('The process has ended')
