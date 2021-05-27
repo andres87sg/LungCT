@@ -85,6 +85,7 @@ plt.imshow(grtr_mask2,cmap='gray')
 winsize=30
 import cv2
 img=np.zeros([512,512])
+img2=np.zeros([512,512,3])
 
 # for col_ind in range(col):
 #         for row_ind in range(row):
@@ -98,20 +99,29 @@ for i in range(col):
 #kk=cv2.line(img, (300,0),(300,512),(255, 0, 0), 2)
 #kk=cv2.line(img, (400,0),(400,512),(255, 0, 0), 2)
 
-plt.imshow(kk,cmap='gray')                
+#plt.imshow(kk,cmap='gray')                
 #cv2.imshow(img,kk
 
-#%%
+a = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
+
+
+img2[:,:,0]=kk
+img2[:,:,1]=kk
+img2[:,:,2]=kk
+# img3=img2*255
+# #b = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
+
 
 from PIL import Image, ImageDraw
 from skimage import io, color
 
-overlapimg=color.label2rgb(im_array,kk,
-                      colors=[(0,0,255),(0,0,255)],
-                      alpha=0.0015, bg_label=0, bg_color=None)  
+overlapimg=color.label2rgb(img2[:,:,0],a[:,:,0],
+                      colors=[(0,255,0)],
+                      alpha=0.2, bg_label=0, bg_color=None)  
 
 
 plt.imshow(overlapimg)
+plt.axis('off')
 
 
 
