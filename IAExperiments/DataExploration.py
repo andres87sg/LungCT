@@ -39,8 +39,10 @@ listfilesmask = os.listdir(pathmask)
 statslist=[]
 classes=[63,127,255]
 
+# NUmber of classes
 for j in range(0,3):
 
+    # Muestra todas las imágenes de la carpeta
     for i in range(len(listfiles)):
     
         im_name = listfiles[i] # Gray level
@@ -79,35 +81,59 @@ print(df)
 
 #[~np.isnan(df.iloc[:,i].values)]
 
-x1=df.iloc[0:226,2].values[~np.isnan(df.iloc[0:226,2].values)]
-y1=df.iloc[0:226,3].values[~np.isnan(df.iloc[0:226,2].values)]
+x1=df.iloc[0:226,1].values[~np.isnan(df.iloc[0:226,1].values)] # Mean
+y1=df.iloc[0:226,2].values[~np.isnan(df.iloc[0:226,2].values)] # Median
+z1=df.iloc[0:226,3].values[~np.isnan(df.iloc[0:226,3].values)] # Desv es
 
-x2=df.iloc[227:226+227,2].values[~np.isnan(df.iloc[227:226+227,2].values)]
-y2=df.iloc[227:226+227,3].values[~np.isnan(df.iloc[227:226+227,2].values)]
+x2=df.iloc[227:226+227,1].values[~np.isnan(df.iloc[227:226+227,1].values)]
+y2=df.iloc[227:226+227,2].values[~np.isnan(df.iloc[227:226+227,2].values)]
+z2=df.iloc[227:226+227,3].values[~np.isnan(df.iloc[227:226+227,3].values)]
 
-x3=df.iloc[226+227+1:226+227+227,2].values[~np.isnan(df.iloc[226+227+1:226+227+227,2].values)]
-y3=df.iloc[226+227+1:226+227+227,3].values[~np.isnan(df.iloc[226+227+1:226+227+227,2].values)]
+x3=df.iloc[226+227+1:226+227+227,1].values[~np.isnan(df.iloc[226+227+1:226+227+227,1].values)]
+y3=df.iloc[226+227+1:226+227+227,2].values[~np.isnan(df.iloc[226+227+1:226+227+227,2].values)]
+z3=df.iloc[226+227+1:226+227+227,3].values[~np.isnan(df.iloc[226+227+1:226+227+227,3].values)]
 
 
 plt.scatter(x1,y1,marker='.')
 plt.scatter(x2,y2,marker='.')
 plt.scatter(x3,y3,marker='.')
+plt.title('mean vs median')
+plt.xlabel('mean')
+plt.ylabel('median')
 
 #%%
-ll1=np.zeros([512,512])
-ll2=np.zeros([512,512])
+imbw_a=np.zeros([512,512])
+imbw_b=np.zeros([512,512])
 
 maxim=np.round(np.mean(x3)+np.std(x3))
 minim=np.round(np.mean(x3)-np.std(x3))
 
-ll1[im_array>minim]=1
-ll2[im_array<maxim]=1
+imbw_a[im_array>minim]=1
+imbw_b[im_array<maxim]=1
 
-pp=ll1*ll2
-plt.imshow(pp)
+pp=imbw_a*imbw_b
+plt.imshow(pp, cmap='gray')
 
-#%%
 
+
+
+
+#%% Experimento aparte
+i=20
+
+im_name = listfiles[i] # Gray level
+im_namemask = listfilesmask[i] # Segmentation mask
+
+# Graylevel image (array)
+im_or=cv2.imread(path+im_name)
+im_array=im_or[:,:,0]
+grtr_mask=cv2.imread(pathmask+im_namemask)
+
+
+
+
+
+#%%%
 """
 
 
@@ -137,6 +163,8 @@ dataclass1=np.array(im_or[grtr_mask==63])
 dataclass2=np.array(im_or[grtr_mask==127])
 dataclass3=np.array(im_or[grtr_mask==255])
 
+
+#%%
 
 
 

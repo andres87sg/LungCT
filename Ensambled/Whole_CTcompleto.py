@@ -157,6 +157,7 @@ print(str(minutes)+' minutes '+ str(seconds) + ' seconds ')
 #%% Show results
     
 from PIL import Image, ImageDraw
+from skimage import io, color
 
 pp=[]
 
