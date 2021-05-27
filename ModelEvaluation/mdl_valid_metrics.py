@@ -164,6 +164,7 @@ df = pd.DataFrame(jaccard_df, columns = classnames)
 
 for i in range(4):
     meanvalue=np.round(
+        # selecciona valores de la columna sin tomar NAN
         np.mean(df.iloc[:,i].values[~np.isnan(df.iloc[:,i].values)]),3
         )
     stdvalue=np.round(
