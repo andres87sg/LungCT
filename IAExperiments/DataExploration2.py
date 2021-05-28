@@ -77,7 +77,10 @@ for col_ind in range(col):
                 coord.append([row_ind,col_ind,label])  
 
                 #grtr_mask2[row_ind][col_ind]=1
-                grtr_mask2[row_ind][col_ind]=sp.stats.mode(patch_bw)
+                
+                [mode_patch,b]=sp.stats.mode(np.ndarray.flatten(patch_bw))
+                
+                grtr_mask2[row_ind][col_ind]=np.int16(mode_patch[0])
                 
 plt.imshow(grtr_mask2,cmap='gray')
 plt.axis('off')
@@ -95,33 +98,25 @@ for i in range(row):
     kk=cv2.line(img, (0,winsize*(i+1)),(512-1,winsize*(i+1)),(1, 0, 0), 1)
 for i in range(col):
     kk=cv2.line(img, (winsize*(i+1),0),(winsize*(i+1),512-1),(1, 0, 0), 1)
-#kk=cv2.line(img, (200,0),(200,512),(255, 0, 0), 2)
-#kk=cv2.line(img, (300,0),(300,512),(255, 0, 0), 2)
-#kk=cv2.line(img, (400,0),(400,512),(255, 0, 0), 2)
 
-#plt.imshow(kk,cmap='gray')                
-#cv2.imshow(img,kk
+# Convert to RGB
+for ind in range(3):
+    img2[:,:,ind]=kk*255
+    
 
-a = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
-
-
-img2[:,:,0]=kk*255
-img2[:,:,1]=kk*255
-img2[:,:,2]=kk*255
-# img3=img2*255
-# #b = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
-
+grtr_mask3 = cv2.resize(grtr_mask2,(512,512), interpolation = cv2.INTER_AREA)
 
 from PIL import Image, ImageDraw
 from skimage import io, color
 
-overlapimg=color.label2rgb(img2[:,:,0]/255,grtr_mask2/255,
+overlapimg=color.label2rgb(img2[:,:,0]/255,im_or/255,
                       colors=[(1,0,0)],
-                      alpha=1, bg_label=0, bg_color=None)  
+                      alpha=0.5, bg_label=0, bg_color=None)  
 
 
 plt.imshow(overlapimg)
 plt.axis('off')
+plt.title('')
 
 
 
@@ -169,14 +164,14 @@ is_three=df.loc[:,'class']==255
 dfclass_three=df.loc[is_three]
 
 #%%
-x1=dfclass_one.iloc[:,4]
-y1=dfclass_one.iloc[:,3]
+x1=dfclass_one.iloc[:,1]
+y1=dfclass_one.iloc[:,2]
 
-x2=dfclass_two.iloc[:,4]
-y2=dfclass_two.iloc[:,3]
+x2=dfclass_two.iloc[:,1]
+y2=dfclass_two.iloc[:,2]
 
-x3=dfclass_three.iloc[:,4]
-y3=dfclass_three.iloc[:,3]
+x3=dfclass_three.iloc[:,1]
+y3=dfclass_three.iloc[:,2]
 
 
 plt.scatter(x1,y1,marker='.')
@@ -186,7 +181,7 @@ plt.title('mean vs median')
 plt.xlabel('mean')
 plt.ylabel('median')
 
-
+a=0;
 
 
 
