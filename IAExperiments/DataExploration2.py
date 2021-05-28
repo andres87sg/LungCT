@@ -77,12 +77,12 @@ for col_ind in range(col):
                 coord.append([row_ind,col_ind,label])  
 
                 #grtr_mask2[row_ind][col_ind]=1
-                grtr_mask2[row_ind][col_ind]=np.max(patch_bw)
+                grtr_mask2[row_ind][col_ind]=sp.stats.mode(patch_bw)
                 
 plt.imshow(grtr_mask2,cmap='gray')
+plt.axis('off')
 
-#%%
-winsize=30
+#%% Show image grid
 import cv2
 img=np.zeros([512,512])
 img2=np.zeros([512,512,3])
@@ -105,9 +105,9 @@ for i in range(col):
 a = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
 
 
-img2[:,:,0]=kk
-img2[:,:,1]=kk
-img2[:,:,2]=kk
+img2[:,:,0]=kk*255
+img2[:,:,1]=kk*255
+img2[:,:,2]=kk*255
 # img3=img2*255
 # #b = cv2.cvtColor(im_array,cv2.COLOR_GRAY2RGB)
 
@@ -115,9 +115,9 @@ img2[:,:,2]=kk
 from PIL import Image, ImageDraw
 from skimage import io, color
 
-overlapimg=color.label2rgb(img2[:,:,0],a[:,:,0],
-                      colors=[(0,255,0)],
-                      alpha=0.2, bg_label=0, bg_color=None)  
+overlapimg=color.label2rgb(img2[:,:,0]/255,grtr_mask2/255,
+                      colors=[(1,0,0)],
+                      alpha=1, bg_label=0, bg_color=None)  
 
 
 plt.imshow(overlapimg)
