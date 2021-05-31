@@ -30,13 +30,13 @@ from scipy.stats import skew,kurtosis
 
 #%%
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
+path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-i=20
+i=30
 
 im_name = listfiles[i] # Gray level
 im_namemask = listfilesmask[i] # Segmentation mask
@@ -199,8 +199,54 @@ plt.ylabel('median')
 
 a=0;
 
+#%% Classification task
+
+class_one=dfclass_one.iloc[:,1:6].values
+class_two=dfclass_two.iloc[:,1:6].values
+class_three=dfclass_three.iloc[:,1:6].values
+
+label_one = dfclass_one.iloc[:,0].values
+label_two = dfclass_two.iloc[:,0].values
+label_three = dfclass_three.iloc[:,0].values
+
+
+features_matrix=np.concatenate((class_one,class_two,class_three),axis=0)
+labels = np.concatenate((label_one,label_two,label_three),axis=0)
+
 #%%
 
+from sklearn import preprocessing
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import datasets
+from sklearn import svm
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+
+scaler = preprocessing.StandardScaler().fit(features_matrix)
+features_matrix_scal=scaler.transform(features_matrix)
+X=features_matrix.copy()
+y=labels
+
+#%%
+
+mm=[]
+scores=[]
+kf = KFold(n_splits=10,shuffle=True)
+for train, test in kf.split(X):
+    print('Train: %s | test: %s' % (train, test))
+    clf = svm.SVC(kernel='linear', C=1).fit(X[train], y[train])
+    mm.append(clf)
+    #print(clf)
+    sco=clf.score(X[test],y[test])
+    scores.append(sco)
+    print(sco)
+    #scores = cross_val_score(clf, X[test], y[test], cv=5)
+
+
+
+
+#%%
 X_train, X_test, y_train, y_test = train_test_split(
 ...     X, y, test_size=0.4, random_state=0)
 
