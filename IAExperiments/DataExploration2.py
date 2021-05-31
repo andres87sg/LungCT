@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import cv2
+import PIL
 import pandas as pd
 
 import timeit as timeit
@@ -45,14 +46,31 @@ im_or=cv2.imread(path+im_name)
 im_array=im_or[:,:,0]
 grtr_mask=cv2.imread(pathmask+im_namemask)
 grtr_mask=grtr_mask[:,:,0]
+mask=np.int16(grtr_mask>0)
+
+#%% Bounding Box
+
+winsize=10
+xmin, ymin, w, h = cv2.boundingRect(np.uint8(mask))
+
+# Redondeo
+xmin=np.uint(np.round(xmin/winsize)*winsize)
+ymin=np.uint(np.round(ymin/winsize)*winsize)
+
+xmax=np.uint((xmin+w)/winsize+1)*winsize
+ymax=np.uint((ymin+h)/winsize+1)*winsize
+
+# Nuevas imagenes con el tamaño del bounding box
+grtr_mask = grtr_mask[ymin:ymax,xmin:xmax]
+im_array = im_array[ymin:ymax,xmin:xmax]
+im_or = im_or[ymin:ymax,xmin:xmax]
 
 #%%
-winsize=10
 
 th=0.95
 area_th=(winsize**2)*th
 
-[width,heigth,x]=np.shape(im_or)
+[heigth,width,x]=np.shape(im_or)
 
 col = np.int16(width/winsize)
 row = np.int16(heigth/winsize)
@@ -85,10 +103,12 @@ for col_ind in range(col):
 plt.imshow(grtr_mask2,cmap='gray')
 plt.axis('off')
 
+
 #%% Show image grid
 import cv2
-img=np.zeros([512,512])
-img2=np.zeros([512,512,3])
+[h,w]=np.shape(grtr_mask)
+img=np.zeros([h,w])
+img2=np.zeros([h,w,3])
 
 # for col_ind in range(col):
 #         for row_ind in range(row):
@@ -104,12 +124,12 @@ for ind in range(3):
     img2[:,:,ind]=kk*255
     
 
-grtr_mask3 = cv2.resize(grtr_mask2,(512,512), interpolation = cv2.INTER_AREA)
+grtr_mask3 = cv2.resize(grtr_mask2,(w,h), interpolation = cv2.INTER_AREA)
 
 from PIL import Image, ImageDraw
 from skimage import io, color
 
-overlapimg=color.label2rgb(img2[:,:,0]/255,im_or/255,
+overlapimg=color.label2rgb(img2[:,:,0]/255,grtr_mask3/255,
                       colors=[(1,0,0)],
                       alpha=0.5, bg_label=0, bg_color=None)  
 
@@ -117,9 +137,6 @@ overlapimg=color.label2rgb(img2[:,:,0]/255,im_or/255,
 plt.imshow(overlapimg)
 plt.axis('off')
 plt.title('')
-
-
-
 
 #%%
 import scipy as sp
@@ -156,7 +173,6 @@ df.head()
 is_one=df.loc[:,'class']==63
 dfclass_one=df.loc[is_one]
 
-
 is_two=df.loc[:,'class']==127
 dfclass_two=df.loc[is_two]
 
@@ -183,15 +199,11 @@ plt.ylabel('median')
 
 a=0;
 
-
-
 #%%
-plt.imshow(grtr_mask2,cmap='gray')
-for i in range(500):
-    [y,x]=coord[i]
-    
-    plt.plot(x,y,c='r',marker='*')
-    
+
+X_train, X_test, y_train, y_test = train_test_split(
+...     X, y, test_size=0.4, random_state=0)
+
 
 
 
