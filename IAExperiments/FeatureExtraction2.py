@@ -164,7 +164,7 @@ for i in tqdm.tqdm(range(len(listfiles))):
 
 #%% Load and save
 #df.to_csv ('export_dataframe.csv', index = False, header=True)
-#df = pd.read_csv('export_dataframe.csv')
+df = pd.read_csv('export_dataframe.csv')
 
 #%%
 
@@ -208,7 +208,7 @@ features_matrix_scal=scaler.transform(features_matrix)
 X=features_matrix_scal.copy()
 y=np.zeros(np.shape(labels))
 
-#%%
+
 
 y[labels==63]=0
 y[labels==127]=1
@@ -227,7 +227,7 @@ for train, test in kf.split(X):
     k=k+1
     print(k)
     #print('Train: %s | test: %s' % (train, test))
-    clf = svm.SVC(kernel='linear', C=1).fit(X[train], y[train])
+    clf = svm.SVC(kernel='rbf', C=3).fit(X[train], y[train])
     mm.append(clf)
     listaclf.append(k)
     #print(clf)
@@ -245,22 +245,19 @@ model=mm[bestindclf]
 
 #%%
 import pickle
-import joblib
+  
+# Save the trained model as a pickle string.
+pkl_filename = "pickle_model.pkl"
+with open(pkl_filename, 'wb') as file:
+    pickle.dump(model, file)
+  
+# Load the pickled model
+#knn_from_pickle = pickle.loads(saved_model)
+  
+# Use the loaded pickled model to make predictions
+#knn_from_pickle.predict(X_test)
 
-filename = 'finalized_model.sav'
-pickle.dump(model, open(filename, 'wb'))
 
-#%%
-
-loaded_model = joblib.load(filename)
-
-zz1=features_matrix_scal[1:1000]
-#zz1=X[1:2]
-
-result=loaded_model.predict(zz1)
-
-#result = loaded_model.score(X_test, Y_test)
-#print(result)
 
 #%%
 

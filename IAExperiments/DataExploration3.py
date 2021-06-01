@@ -165,6 +165,11 @@ for i in range(len(coord)):
     dissimil = greycoprops(glcm, 'dissimilarity')
     energy   = greycoprops(glcm, 'energy')
     
+    contr = contrast[0,0]
+    homog = homogene[0,0]
+    dissi = dissimil[0,0]
+    energ = energy[0,0]
+    
     
     plt.imshow(patch,cmap='gray')
     
@@ -177,10 +182,14 @@ for i in range(len(coord)):
     skew_gl = sp.stats.skew(patch)
     class_gl= np.int16(label)
     
-    statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl]
+    statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl,
+               contr,homog,dissi,energ]
     statslist.append(statist)
     
-classnames=['class','mean','med','std','skew','kurt']
+classnames=['class','mean','med','std','skew','kurt',
+            'contr','homog','dissi','energ'
+            
+            ]
 
 df = pd.DataFrame(statslist, columns = classnames)
 df.head()
@@ -197,14 +206,14 @@ is_three=df.loc[:,'class']==255
 dfclass_three=df.loc[is_three]
 
 #%%
-x1=dfclass_one.iloc[:,1]
-y1=dfclass_one.iloc[:,2]
+x1=dfclass_one.iloc[:,6]
+y1=dfclass_one.iloc[:,7]
 
-x2=dfclass_two.iloc[:,1]
-y2=dfclass_two.iloc[:,2]
+x2=dfclass_two.iloc[:,6]
+y2=dfclass_two.iloc[:,7]
 
-x3=dfclass_three.iloc[:,1]
-y3=dfclass_three.iloc[:,2]
+x3=dfclass_three.iloc[:,6]
+y3=dfclass_three.iloc[:,7]
 
 
 plt.scatter(x1,y1,marker='.')
