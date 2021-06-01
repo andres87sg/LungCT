@@ -49,7 +49,7 @@ listfiles.sort()
 listfilesmask.sort()
 
 #for i in range(len(listfiles)):
-for i in tqdm.tqdm(range(0,100)):
+for i in tqdm.tqdm(range(len(listfiles))):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
@@ -159,9 +159,14 @@ for i in tqdm.tqdm(range(0,100)):
     
     df = pd.DataFrame(statslist, columns = classnames)
     df.head()
-        
-#%%
+    
+    
 
+#%% Load and save
+#df.to_csv ('export_dataframe.csv', index = False, header=True)
+#df = pd.read_csv('export_dataframe.csv')
+
+#%%
 
 is_one=df.loc[:,'class']==63
 dfclass_one=df.loc[is_one]
@@ -181,11 +186,11 @@ label_two = dfclass_two.iloc[:,0].values
 label_three = dfclass_three.iloc[:,0].values
 
 
-features_matrix=np.concatenate((class_one[0:999,:],
-                                class_two[0:999,:],
-                                class_three[0:999,:]
+features_matrix=np.concatenate((class_one[0:5000,:],
+                                class_two[0:5000,:],
+                                class_three[0:5000,:]
                                 ),axis=0)
-labels = np.concatenate((label_one[1:999],label_two[1:999],label_three[1:999]),axis=0)
+labels = np.concatenate((label_one[0:5000],label_two[0:5000],label_three[0:5000]),axis=0)
 
 #%%
 
@@ -232,6 +237,7 @@ for train, test in kf.split(X):
     #scores = cross_val_score(clf, X[test], y[test], cv=5)
     
 scores==np.max(scores)
+print(scores)
 
 zmn=listaclf*(scores==np.max(scores))
 bestindclf=np.max(zmn)-1
