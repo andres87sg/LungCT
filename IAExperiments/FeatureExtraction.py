@@ -32,6 +32,8 @@ from scipy.stats import skew,kurtosis
 
 #%%
 
+import tqdm
+
 path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
 pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
@@ -40,8 +42,9 @@ statslist=[]
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-for i in range(len(listfiles)):
-
+#for i in range(len(listfiles)):
+for i in tqdm.tqdm(range(len(listfiles))):
+    
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
 
@@ -148,10 +151,14 @@ label_two = dfclass_two.iloc[:,0].values
 label_three = dfclass_three.iloc[:,0].values
 
 
-features_matrix=np.concatenate((class_one,class_two,class_three),axis=0)
-labels = np.concatenate((label_one,label_two,label_three),axis=0)
+features_matrix=np.concatenate((class_one[0:999,:],
+                                class_two[0:999,:],
+                                class_three[0:999,:]
+                                ),axis=0)
+labels = np.concatenate((label_one[1:999],label_two[1:999],label_three[1:999]),axis=0)
 
 #%%
+
 
 from sklearn import preprocessing
 import numpy as np
@@ -163,8 +170,14 @@ from sklearn.model_selection import KFold
 
 scaler = preprocessing.StandardScaler().fit(features_matrix)
 features_matrix_scal=scaler.transform(features_matrix)
-X=features_matrix.copy()
-y=labels
+X=features_matrix_scal.copy()
+y=np.zeros(np.shape(labels))
+
+#%%
+
+y[labels==63]=0
+y[labels==127]=1
+y[labels==255]=2
 
 #%%
 
@@ -196,6 +209,7 @@ model=mm[bestindclf]
 
 #%%
 import pickle
+import joblib
 
 filename = 'finalized_model.sav'
 pickle.dump(model, open(filename, 'wb'))
@@ -203,8 +217,14 @@ pickle.dump(model, open(filename, 'wb'))
 #%%
 
 loaded_model = joblib.load(filename)
-result = loaded_model.score(X_test, Y_test)
-print(result)
+
+zz1=features_matrix_scal[1:1000]
+#zz1=X[1:2]
+
+result=loaded_model.predict(zz1)
+
+#result = loaded_model.score(X_test, Y_test)
+#print(result)
 
 #%%
 
