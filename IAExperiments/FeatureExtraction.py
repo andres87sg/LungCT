@@ -42,12 +42,16 @@ statslist=[]
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
+listfiles.sort()
+listfilesmask.sort()
+
 #for i in range(len(listfiles)):
-for i in tqdm.tqdm(range(len(listfiles))):
+for i in tqdm.tqdm(range(0,10)):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
-
+    print(im_name)
+    
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
     im_array=im_or[:,:,0]

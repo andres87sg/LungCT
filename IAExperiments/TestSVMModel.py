@@ -31,6 +31,7 @@ from scipy.stats import skew,kurtosis
 import scipy as sp
 from scipy.stats import skew,kurtosis
 
+import tqdm
 #%%
 
 path = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
@@ -41,8 +42,11 @@ statslist=[]
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
+listfiles.sort()
+listfilesmask.sort()
+
 #for i in range(len(listfiles)):
-for i in tqdm.tqdm(range(len(listfiles))):
+for i in tqdm.tqdm(range(1,10)):
 
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
