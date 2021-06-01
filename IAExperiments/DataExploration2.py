@@ -28,6 +28,9 @@ from timeit import timeit
 import scipy as sp
 from scipy.stats import skew,kurtosis
 
+import skimage
+from skimage.feature import greycomatrix, greycoprops
+
 #%%
 
 path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
@@ -148,6 +151,18 @@ for i in range(len(coord)):
     [row_ind,col_ind,label]=coord[i]
     patch=im_or[winsize*row_ind:winsize*row_ind+winsize,
                 winsize*col_ind:winsize*col_ind+winsize]
+    
+    patch=patch[:,:,0]
+    
+    '''
+    Haralick Texture    
+    '''
+    glcm = skimage.feature.greycomatrix(patch, distances=[1], angles=[0], levels=256,
+                        symmetric=True, normed=True)
+    
+    contrast = greycoprops(glcm, 'contrast')
+    contrast = greycoprops(glcm, 'homogeneity')
+    
     
     plt.imshow(patch,cmap='gray')
     
