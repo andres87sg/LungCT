@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-Created on Thu May 27 13:39:27 2021
+Created on Mon May 31 15:35:16 2021
 
 @author: Andres
 """
@@ -30,15 +31,13 @@ from scipy.stats import skew,kurtosis
 import scipy as sp
 from scipy.stats import skew,kurtosis
 
+import tqdm
 import skimage
 from skimage.feature import greycomatrix, greycoprops
-
 #%%
 
-import tqdm
-
-path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
+path = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 
 statslist=[]
 
@@ -48,13 +47,13 @@ listfilesmask = os.listdir(pathmask)
 listfiles.sort()
 listfilesmask.sort()
 
-for i in range(len(listfiles)):
+for i in range(0,1):
+#for i in tqdm.tqdm(range(1,10)):
 #for i in tqdm.tqdm(range(len(listfiles))):
-    
+
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
-    #print(im_name)
-    
+
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
     im_array=im_or[:,:,0]
@@ -62,20 +61,20 @@ for i in range(len(listfiles)):
     grtr_mask=grtr_mask[:,:,0]
     mask=np.int16(grtr_mask>0)
     
-    winsize=5
-    xmin, ymin, w, h = cv2.boundingRect(np.uint8(mask))
+    winsize=10
+    # xmin, ymin, w, h = cv2.boundingRect(np.uint8(mask))
     
-    # Redondeo
-    xmin=np.uint(np.round(xmin/winsize)*winsize)
-    ymin=np.uint(np.round(ymin/winsize)*winsize)
+    # # Redondeo
+    # xmin=np.uint(np.round(xmin/winsize)*winsize)
+    # ymin=np.uint(np.round(ymin/winsize)*winsize)
     
-    xmax=np.uint((xmin+w)/winsize+1)*winsize
-    ymax=np.uint((ymin+h)/winsize+1)*winsize
+    # xmax=np.uint((xmin+w)/winsize+1)*winsize
+    # ymax=np.uint((ymin+h)/winsize+1)*winsize
 
-    # Nuevas imagenes con el tamaño del bounding box
-    grtr_mask = grtr_mask[ymin:ymax,xmin:xmax]
-    im_array = im_array[ymin:ymax,xmin:xmax]
-    im_or = im_or[ymin:ymax,xmin:xmax]
+    # # Nuevas imagenes con el tamaño del bounding box
+    # grtr_mask = grtr_mask[ymin:ymax,xmin:xmax]
+    # im_array = im_array[ymin:ymax,xmin:xmax]
+    # im_or = im_or[ymin:ymax,xmin:xmax]
     
     th=0.95
     area_th=(winsize**2)*th
@@ -102,12 +101,13 @@ for i in range(len(listfiles)):
                     
                     #grtr_mask[row_ind][col_ind]=1
                     #label=np.max(patch_bw)
+                    label = np.int16(mode_patch[0])
+                    coord.append([row_ind,col_ind,label])  
     
                     #grtr_mask2[row_ind][col_ind]=1
                     
                     [mode_patch,b]=sp.stats.mode(np.ndarray.flatten(patch_bw))
-                    label=np.int16(mode_patch[0])
-                    coord.append([row_ind,col_ind,label])  
+                    
                     grtr_mask2[row_ind][col_ind]=np.int16(mode_patch[0])
                     
     # plt.figure()
@@ -116,10 +116,10 @@ for i in range(len(listfiles)):
     
     for i in range(len(coord)):
         [row_ind,col_ind,label]=coord[i]
-        patch=im_or[winsize*row_ind:winsize*row_ind+winsize,
+        patch2=im_or[winsize*row_ind:winsize*row_ind+winsize,
                     winsize*col_ind:winsize*col_ind+winsize]
         
-        patch=patch[:,:,0]
+        patch=patch2[:,:,0]
     
         '''
         Haralick Texture    
@@ -159,12 +159,13 @@ for i in range(len(listfiles)):
     
     df = pd.DataFrame(statslist, columns = classnames)
     df.head()
-    
-    
+        
+#%%
 
 #%% Load and save
-#df.to_csv ('export_dataframe.csv', index = False, header=True)
-df = pd.read_csv('export_dataframe.csv')
+#df.to_csv ('test_dataframe.csv', index = False, header=True)
+#df = pd.read_csv('test_dataframe.csv')
+
 
 #%%
 
@@ -186,14 +187,13 @@ label_two = dfclass_two.iloc[:,0].values
 label_three = dfclass_three.iloc[:,0].values
 
 
-features_matrix=np.concatenate((class_one[0:5000,:],
-                                class_two[0:5000,:],
-                                class_three[0:5000,:]
+features_matrix=np.concatenate((class_one,
+                                class_two,
+                                class_three
                                 ),axis=0)
-labels = np.concatenate((label_one[0:5000],label_two[0:5000],label_three[0:5000]),axis=0)
+labels = np.concatenate((label_one,label_two,label_three),axis=0)
 
-#%%
-
+#%% Data preprocessing
 
 from sklearn import preprocessing
 import numpy as np
@@ -208,62 +208,28 @@ features_matrix_scal=scaler.transform(features_matrix)
 X=features_matrix_scal.copy()
 y=np.zeros(np.shape(labels))
 
-
-
 y[labels==63]=0
 y[labels==127]=1
 y[labels==255]=2
 
 #%%
 
-mm=[]
-scores=[]
-k=0
-listaclf=[]
-
-
-kf = KFold(n_splits=10,shuffle=True)
-for train, test in kf.split(X):
-    k=k+1
-    print(k)
-    #print('Train: %s | test: %s' % (train, test))
-    clf = svm.SVC(kernel='rbf', C=3).fit(X[train], y[train])
-    mm.append(clf)
-    listaclf.append(k)
-    #print(clf)
-    sco=clf.score(X[test],y[test])
-    scores.append(sco)
-    #print(sco)
-    #scores = cross_val_score(clf, X[test], y[test], cv=5)
-    
-scores==np.max(scores)
-print(scores)
-
-zmn=listaclf*(scores==np.max(scores))
-bestindclf=np.max(zmn)-1
-model=mm[bestindclf]
-
-#%%
 import pickle
-  
-# Save the trained model as a pickle string.
+import joblib
+
 pkl_filename = "pickle_model.pkl"
-with open(pkl_filename, 'wb') as file:
-    pickle.dump(model, file)
-  
-# Load the pickled model
-#knn_from_pickle = pickle.loads(saved_model)
-  
-# Use the loaded pickled model to make predictions
-#knn_from_pickle.predict(X_test)
 
-
+with open(pkl_filename, 'rb') as file:
+    pickle_model = pickle.load(file)
 
 #%%
 
+predicted_label = pickle_model.predict(X)
+true_label=y.copy()
 
+#%%
+from sklearn.metrics import confusion_matrix, classification_report
 
-
-
-
-    
+print("Classification report")
+print(confusion_matrix(true_label, predicted_label))
+print(classification_report(true_label, predicted_label, digits=3))

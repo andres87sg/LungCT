@@ -39,7 +39,7 @@ pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-i=30
+i=10
 
 im_name = listfiles[i] # Gray level
 im_namemask = listfilesmask[i] # Segmentation mask
@@ -51,9 +51,27 @@ grtr_mask=cv2.imread(pathmask+im_namemask)
 grtr_mask=grtr_mask[:,:,0]
 mask=np.int16(grtr_mask>0)
 
+
+# Creating kernel
+kernel = np.ones((10, 10), np.uint8)
+  
+# Using cv2.erode() method 
+imagemask = cv2.erode(mask, kernel)
+
+im_or=im_or[:,:,0]*imagemask
+
+kk=im_or[im_or>0]
+
+plt.hist(kk,20)
+plt.figure()
+plt.imshow(imagemask)
+
+
 #%% Bounding Box
 
-winsize=10
+winsize=5
+
+"""
 xmin, ymin, w, h = cv2.boundingRect(np.uint8(mask))
 
 # Redondeo
@@ -67,13 +85,14 @@ ymax=np.uint((ymin+h)/winsize+1)*winsize
 grtr_mask = grtr_mask[ymin:ymax,xmin:xmax]
 im_array = im_array[ymin:ymax,xmin:xmax]
 im_or = im_or[ymin:ymax,xmin:xmax]
+"""
 
 #%%
 
-th=0.95
+th=0.99
 area_th=(winsize**2)*th
 
-[heigth,width,x]=np.shape(im_or)
+[heigth,width]=np.shape(im_or)
 
 col = np.int16(width/winsize)
 row = np.int16(heigth/winsize)
@@ -152,7 +171,7 @@ for i in range(len(coord)):
     patch=im_or[winsize*row_ind:winsize*row_ind+winsize,
                 winsize*col_ind:winsize*col_ind+winsize]
     
-    patch=patch[:,:,0]
+    #patch=patch[:,:,0]
     
     '''
     Haralick Texture    
@@ -187,8 +206,7 @@ for i in range(len(coord)):
     statslist.append(statist)
     
 classnames=['class','mean','med','std','skew','kurt',
-            'contr','homog','dissi','energ'
-            
+            'contr','homog','dissi','energ'            
             ]
 
 df = pd.DataFrame(statslist, columns = classnames)
@@ -206,14 +224,14 @@ is_three=df.loc[:,'class']==255
 dfclass_three=df.loc[is_three]
 
 #%%
-x1=dfclass_one.iloc[:,6]
-y1=dfclass_one.iloc[:,7]
+x1=dfclass_one.iloc[:,3]
+y1=dfclass_one.iloc[:,4]
 
-x2=dfclass_two.iloc[:,6]
-y2=dfclass_two.iloc[:,7]
+x2=dfclass_two.iloc[:,3]
+y2=dfclass_two.iloc[:,4]
 
-x3=dfclass_three.iloc[:,6]
-y3=dfclass_three.iloc[:,7]
+x3=dfclass_three.iloc[:,3]
+y3=dfclass_three.iloc[:,4]
 
 
 plt.scatter(x1,y1,marker='.')
