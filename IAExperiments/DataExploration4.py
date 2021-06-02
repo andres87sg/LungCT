@@ -101,6 +101,8 @@ dfclass_two=df.loc[is_two]
 is_three=df.loc[:,'class']==2
 dfclass_three=df.loc[is_three]
 
+true_labels=df['class'].values
+
 #%%
 x1=dfclass_one.iloc[:,2]
 y1=dfclass_one.iloc[:,3]
@@ -121,14 +123,14 @@ plt.ylabel('median')
 
 #%%
 
-X=df.iloc[1:100,2:4].values
+X=df.iloc[:,1:6].values
 
 #%%
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances_argmin_min
 
-Nc = range(1, 20)
+Nc = range(1, 10)
 kmeans = [KMeans(n_clusters=i) for i in Nc]
 kmeans
 score = [kmeans[i].fit(X).score(X) for i in range(len(kmeans))]
@@ -143,7 +145,15 @@ plt.show()
 
 kmeans = KMeans(n_clusters=3).fit(X)
 centroids = kmeans.cluster_centers_
+k_labels = kmeans.labels_
+
 print(centroids)
+
+#%%
+
+centroids2=centroids.copy()
+centroids2.sort(axis=0)
+
 
 #%%
 plt.scatter(x1,y1,marker='.')
@@ -153,12 +163,197 @@ plt.title('mean vs std')
 plt.xlabel('mean')
 plt.ylabel('median')
 
-plt.plot(centroids[0][0],centroids[0][1], 'r*')
-plt.plot(centroids[1][0],centroids[1][1], 'b*')
-plt.plot(centroids[2][0],centroids[2][1], 'r*')
+plt.plot(centroids2[0][0],centroids2[0][2], 'r*')
+plt.plot(centroids2[1][0],centroids2[1][2], 'b*')
+plt.plot(centroids2[2][0],centroids2[2][2], 'r*')
 #plt.plot(centroids[3][0],centroids[3][1], 'r*')
 
 #%%
+
+i=30
+
+im_name = listfiles[i] # Gray level
+im_namemask = listfilesmask[i] # Segmentation mask
+
+# Graylevel image (array)
+im_or=cv2.imread(path+im_name)
+im_array=im_or[:,:,0]
+grtr_mask=cv2.imread(pathmask+im_namemask)
+
+mask=np.int16(grtr_mask[:,:,0]>0)
+
+kernel = np.ones((10, 10), np.uint8)
+cropmask = cv2.erode(mask, kernel)
+
+
+im_or=im_or[:,:,0]*cropmask
+grtr_mask = grtr_mask[:,:,0]*cropmask
+
+
+for ind in range(3):
+    
+    min_a=centroids2[ind,0]-centroids2[ind,2]
+    max_a=centroids2[ind,0]+centroids2[ind,2]
+    
+    pp1=np.zeros((512,512))
+    pp2=np.zeros((512,512))
+    
+    pp2[im_or>min_a]=1
+    pp1[im_or<max_a]=1
+    kkz=pp1*pp2
+    plt.figure()
+    plt.imshow(kkz,cmap='gray')
+
+
+
+
+
+#%%
+from sklearn import preprocessing
+
+features_matrix=X.copy()
+scaler = preprocessing.StandardScaler().fit(features_matrix)
+features_matrix_scal=scaler.transform(features_matrix)
+X=features_matrix_scal.copy()
+y=true_labels
+
+
+#%%
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, 
+                                                    test_size=0.4, 
+                                                    random_state=0)
+
+mm=[]
+scores=[]
+kf = KFold(n_splits=10)
+for train, test in kf.split(X):
+    #print('Train: %s | test: %s' % (train, test))
+    model = KNeighborsClassifier(n_neighbors = 3)
+    clf = model.fit(X[train], y[train])
+    mm.append(clf)
+    #print(clf)
+    sco=clf.score(X[test],y[test])
+    scores.append(sco)
+    print(sco)
+    #scores = cross_val_score(clf, X[test], y[test], cv=5)
+
+
+
+# model = KNeighborsClassifier(n_neighbors = 3)
+# model.fit(X,true_labels)
+
+
+
+
+
+
+#%%
+
+
+# import the necessary packages
+from skimage.exposure import rescale_intensity
+from skimage.segmentation import slic
+from skimage.util import img_as_float
+from skimage import io
+import numpy as np
+import argparse
+import cv2
+
+i=10
+
+im_name = listfiles[i] # Gray level
+im_namemask = listfilesmask[i] # Segmentation mask
+
+# Graylevel image (array)
+im_or=cv2.imread(path+im_name)
+im_array=im_or[:,:,0]
+grtr_mask=cv2.imread(pathmask+im_namemask)
+
+mask=np.int16(grtr_mask[:,:,0]>0)
+
+kernel = np.ones((10, 10), np.uint8)
+cropmask = cv2.erode(mask, kernel)
+
+
+im_or=im_or[:,:,0]*cropmask
+grtr_mask = grtr_mask[:,:,0]*cropmask
+
+kk=np.zeros((512,512,3))
+
+kk[:,:,0]=im_or
+kk[:,:,1]=im_or
+kk[:,:,2]=im_or
+
+kk = kk[100:400,100:400]
+cropmask = cropmask[100:400,100:400]
+
+segments = slic(img_as_float(kk), n_segments=1000,sigma=2,start_label=1)
+plt.imshow(segments,cmap='gray')
+plt.imshow(im_or,cmap='gray')
+
+#%%
+
+zz1=segments*cropmask
+plt.imshow(zz1,cmap='gray')
+
+labels = np.unique(zz1)
+
+#zz2=im_or(segments==labels[1])
+
+#%%
+statslist=[]
+for ind in range(1,24):
+    mean_gl = np.mean(im_or[zz1==labels[ind]])
+    med_gl  = np.median(im_or[zz1==labels[ind]])
+    std_gl  = np.std(im_or[zz1==labels[ind]])
+    kurt_gl = sp.stats.kurtosis(im_or[zz1==labels[ind]])
+    skew_gl = sp.stats.skew(im_or[zz1==labels[ind]])
+    
+    
+    statist = [mean_gl,med_gl,std_gl,kurt_gl,skew_gl]
+    statslist.append(statist)
+    
+    
+X=np.array(statslist)
+    
+features_matrix=X.copy()
+scaler = preprocessing.StandardScaler().fit(features_matrix)
+features_matrix_scal=scaler.transform(features_matrix)
+X=features_matrix_scal.copy()
+y=true_labels
+
+
+
+
+#X1=[mean_gl,med_gl,std_gl,kurt_gl,skew_gl]
+#X1=[med_gl,std_gl,kurt_gl,skew_gl]
+#op=np.array(X1).reshape(1,-1)
+esto=model.predict(X)
+print(esto)
+#print(esto)
+
+
+#%%
+
+# alpha = 0.6
+# overlay = np.dstack([vis] * 3)
+# output = orig.copy()
+# cv2.addWeighted(overlay, alpha, output, 1 - alpha, 0, output)
+
+#%%
+
 
 from skimage.segmentation import slic
 
