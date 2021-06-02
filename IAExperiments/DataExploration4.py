@@ -189,21 +189,51 @@ cropmask = cv2.erode(mask, kernel)
 im_or=im_or[:,:,0]*cropmask
 grtr_mask = grtr_mask[:,:,0]*cropmask
 
+#%%
+import cv2 as cv
 
-for ind in range(3):
+mask1=segmentationmask(im_or,centroids2,0)
+mask2=segmentationmask(im_or,centroids2,1)
+mask3=segmentationmask(im_or,centroids2,2)
+
+kernel = np.ones((3,3),np.uint8)
+
+closing = cv.morphologyEx(mask2, cv.MORPH_CLOSE, kernel)
+opening = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel)
+
+# for ind in range(3):
     
-    min_a=centroids2[ind,0]-centroids2[ind,2]
-    max_a=centroids2[ind,0]+centroids2[ind,2]
+#     min_a=centroids2[ind,0]-centroids2[ind,2]
+#     max_a=centroids2[ind,0]+centroids2[ind,2]
+    
+#     pp1=np.zeros((512,512))
+#     pp2=np.zeros((512,512))
+    
+#     pp2[im_or>min_a]=1
+#     pp1[im_or<max_a]=1
+#     kkz=pp1*pp2
+#     plt.figure()
+#     plt.imshow(kkz,cmap='gray')
+
+
+#%%
+
+def segmentationmask(im_or,centroids2,ind):
+    
+    min_a=centroids2[ind,1]-centroids2[ind,2]
+    max_a=centroids2[ind,1]+centroids2[ind,2]
     
     pp1=np.zeros((512,512))
     pp2=np.zeros((512,512))
     
     pp2[im_or>min_a]=1
     pp1[im_or<max_a]=1
+    
     kkz=pp1*pp2
-    plt.figure()
-    plt.imshow(kkz,cmap='gray')
-
+    
+    return kkz
+    # plt.figure()
+    # plt.imshow(kkz,cmap='gray')    
 
 
 
