@@ -63,10 +63,6 @@ cropmask = cv.erode(mask, kernel)
 im_or = im_or[:,:,0]*cropmask
 grtr_mask = grtr_mask[:,:,0]*cropmask
 
-# plt.figure()
-# plt.imshow(im_or,cmap='gray')
-# plt.figure()
-# plt.imshow(grtr_mask,cmap='gray')
 
 #%% Cluster regions
 
@@ -113,8 +109,8 @@ lunginfmask = closing.copy()
 # Region of interest
 roi = np.where(lunginfmask == 1)
 
-plt.imshow(im_or,cmap='gray')
-plt.plot(roi[1],roi[0],'.r')
+# plt.imshow(im_or,cmap='gray')
+# plt.plot(roi[1],roi[0],'.r')
 
 #%%
 
@@ -164,9 +160,7 @@ def predmask(roi,predicted_label,label):
 ggomask=predmask(roi,predicted_label,1)
 conmask=predmask(roi,predicted_label,2)
 #%%
-
-plt.imshow(ggomask,cmap='gray')
-plt.imshow(conmask,cmap='gray')
-
+plt.figure()
 plt.imshow(conmask+ggomask+lungmask)
+
 
