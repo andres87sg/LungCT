@@ -81,13 +81,15 @@ for i in tqdm.tqdm(range(len(listfiles))):
             kurt_gl = sp.stats.kurtosis(data_class[0])
             skew_gl = sp.stats.skew(data_class[0])
             entr_gl = sp.stats.entropy(data_class[0])
+            [mode_gl,b]= sp.stats.mode(data_class[0])
+            
             class_gl= data_class[1]
-            statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl,
+            statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl,mode_gl,
                        entr_gl]
             statslist.append(statist)
  
 
-classnames=['class','mean','med','std','skew','kurt','entr']
+classnames=['class','mean','med','std','skew','kurt','mode','entr']
 
 df = pd.DataFrame(statslist, columns = classnames)
 df.head()
@@ -107,13 +109,13 @@ dfclass_three=df.loc[is_three]
 true_labels=df['class'].values
 
 #%%
-x1=dfclass_one.iloc[:,1]
+x1=dfclass_one.iloc[:,2]
 y1=dfclass_one.iloc[:,6]
 
-x2=dfclass_two.iloc[:,1]
+x2=dfclass_two.iloc[:,2]
 y2=dfclass_two.iloc[:,6]
 
-x3=dfclass_three.iloc[:,1]
+x3=dfclass_three.iloc[:,2]
 y3=dfclass_three.iloc[:,6]
 
 
