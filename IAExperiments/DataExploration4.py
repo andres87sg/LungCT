@@ -4,17 +4,7 @@ Created on Thu May 27 13:39:27 2021
 
 @author: Andres
 """
-
-import tensorflow as tf
-import tensorflow.keras as keras
-
-from tensorflow.keras import Input,layers, models
-from tensorflow.keras.layers import Conv2DTranspose,Dropout,Conv2D,BatchNormalization, Activation,MaxPooling2D
-from tensorflow.keras import Model
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
-
 import math
-import albumentations as A
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -22,14 +12,8 @@ import cv2
 import PIL
 import pandas as pd
 
-import timeit as timeit
-from timeit import timeit
-
 import scipy as sp
 from scipy.stats import skew,kurtosis
-
-import skimage
-from skimage.feature import greycomatrix, greycoprops
 
 import tqdm
 
@@ -279,13 +263,11 @@ for train, test in kf.split(X):
     print(sco)
     #scores = cross_val_score(clf, X[test], y[test], cv=5)
 
+#%%
+bestmodel=mm[6]
 
-
-# model = KNeighborsClassifier(n_neighbors = 3)
-# model.fit(X,true_labels)
-
-
-
+joblib_file = "KNNmodel.pkl"
+joblib.dump(bestmodel, joblib_file)
 
 
 
