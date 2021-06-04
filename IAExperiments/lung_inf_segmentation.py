@@ -63,10 +63,10 @@ cropmask = cv.erode(mask, kernel)
 im_or = im_or[:,:,0]*cropmask
 grtr_mask = grtr_mask[:,:,0]*cropmask
 
-plt.figure()
-plt.imshow(im_or,cmap='gray')
-plt.figure()
-plt.imshow(grtr_mask,cmap='gray')
+# plt.figure()
+# plt.imshow(im_or,cmap='gray')
+# plt.figure()
+# plt.imshow(grtr_mask,cmap='gray')
 
 #%% Cluster regions
 
@@ -92,9 +92,9 @@ def kmeanscluster(im_or):
 segmented_image=kmeanscluster(im_or)
 
 
-# show the image
-plt.imshow(segmented_image,cmap='gray')
-plt.show()
+# # show the image
+# plt.imshow(segmented_image,cmap='gray')
+# plt.show()
 
 #%%
 
