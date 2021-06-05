@@ -45,14 +45,21 @@ def kmeanscluster(im_or):
     
     return segmented_image
 
-def feature_extraction(im_or,roi):
+def feature_extraction(im_or,roi,subsample):
     dist=5
     statslist=[]
+    
+    #subsample=1
+    
+    xcoord=roi[0][::subsample]
+    ycoord=roi[1][::subsample]
+    
     # Slicing window
-    for k in range(np.shape(roi)[1]):
-        c=roi[1][k],roi[0][k]
-        zlz=im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]
-        data=zlz.flatten()
+    for k in range(np.shape(xcoord)[0]):
+        #print(k)
+        c=ycoord[k],xcoord[k]
+        data=(im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
+        #data=zlz.flatten()
         mean_gl = np.mean(data)
         med_gl  = np.median(data)
         std_gl  = np.std(data)
@@ -64,9 +71,11 @@ def feature_extraction(im_or,roi):
 
     return featurematrix
 
-def predmask(roi,predicted_label,label):
-    predcoordy=roi[0][predicted_label==label]
-    predcoordx=roi[1][predicted_label==label]
+def predmask(roi,subsample,predicted_label,label):
+    
+    #subsample=1   
+    predcoordy=roi[0][::subsample][predicted_label==label]
+    predcoordx=roi[1][::subsample][predicted_label==label]
     predictedmask=np.zeros((np.shape(im_or)[0],np.shape(im_or)[1]))
     predictedmask[predcoordy,predcoordx]=label+1
     
@@ -81,20 +90,33 @@ def lunginfectionsegmentation(im_or):
     lunginfmask=np.int16(segmented_image==clusterlabels[2])
     
     kernel = np.ones((3,3), np.uint8)
-    closing = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
-    lunginfmask = closing.copy()
+    imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
+    lunginfmask = imopen.copy()
     
     # Region of interest
     roi = np.where(lunginfmask == 1)
     
-    featurematrix=feature_extraction(im_or,roi)
+    subsample=5
+    
+    featurematrix=feature_extraction(im_or,roi,subsample)
     scaler = preprocessing.StandardScaler().fit(featurematrix)
     featurematrix_norm=scaler.transform(featurematrix)
     
     predicted_label = clf_model.predict(featurematrix_norm)
-    ggomask=predmask(roi,predicted_label,1)
-    conmask=predmask(roi,predicted_label,2)
-    lunginfmask = conmask+ggomask+lungmask
+    
+    ggomask=predmask(roi,subsample,predicted_label,1)
+    conmask=predmask(roi,subsample,predicted_label,2)
+      
+    kernel = np.ones((subsample,subsample), np.uint8)
+    ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
+    conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
+    
+    
+    #lunginfmask = conmask2+ggomask2+lungmask
+    lunginfmask = conmask_close+ggomask_close
+    lunginfmask[lunginfmask>3]=0
+    
+    
     
     return lunginfmask
 
@@ -111,27 +133,35 @@ pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-i=23
+for i in range(len(listfiles)):
+    im_name = listfiles[i] # Gray level
+    im_namemask = listfilesmask[i] # Segmentation mask
+    
+    # Graylevel image (array)
+    im_or=cv.imread(path+im_name)
+    im_array=im_or[:,:,0]
+    grtr_mask=cv.imread(pathmask+im_namemask)
+    
+    mask=np.int16(grtr_mask[:,:,0]>0)
+    
+    kernel = np.ones((10, 10), np.uint8)
+    cropmask = cv.erode(mask, kernel)
+    
+    im_or = im_or[:,:,0]*cropmask
+    grtr_mask = grtr_mask[:,:,0]*cropmask
+    
+    final_mask=lunginfectionsegmentation(im_or)
+    
+    plt.figure()
+    plt.subplot(1,2,2)
+    plt.imshow(final_mask,cmap='gray')
+    plt.title('segmentation')
+    plt.axis('off')
+    plt.subplot(1,2,1)
+    plt.imshow(im_or,cmap='gray')
+    plt.title('Im or')
+    plt.axis('off')
 
-im_name = listfiles[i] # Gray level
-im_namemask = listfilesmask[i] # Segmentation mask
-
-# Graylevel image (array)
-im_or=cv.imread(path+im_name)
-im_array=im_or[:,:,0]
-grtr_mask=cv.imread(pathmask+im_namemask)
-
-mask=np.int16(grtr_mask[:,:,0]>0)
-
-kernel = np.ones((10, 10), np.uint8)
-cropmask = cv.erode(mask, kernel)
-
-im_or = im_or[:,:,0]*cropmask
-grtr_mask = grtr_mask[:,:,0]*cropmask
-
-final_mask=lunginfectionsegmentation(im_or)
-
-plt.imshow(final_mask,cmap='gray')
 
 
 

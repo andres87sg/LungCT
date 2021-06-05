@@ -118,27 +118,55 @@ plt.plot(roi[1],roi[0],'.r')
 
 #%%
 
-def feature_extraction(im_or,roi):
-    dist=5
-    statislist=[]
-    # Slicing window
-    for k in range(np.shape(roi)[1]):
-        #print(k)
-        c=roi[1][k],roi[0][k]
-        zlz=im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]
-        data=zlz.flatten()
-        mean_gl = np.mean(data)
-        med_gl  = np.median(data)
-        std_gl  = np.std(data)
-        kurt_gl = sp.stats.kurtosis(data)
-        skew_gl = sp.stats.skew(data)        
-        statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
 
-    featurematrix = np.array(statslist)    
 
-    return featurematrix
+# def feature_extraction(im_or,roi):
+#     dist=5
+#     statislist=[]
+#     # Slicing window
+#     for k in range(np.shape(roi)[1]):
+#         #print(k)
+#         c=roi[1][k],roi[0][k]
+#         zlz=im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]
+#         data=zlz.flatten()
+#         mean_gl = np.mean(data)
+#         med_gl  = np.median(data)
+#         std_gl  = np.std(data)
+#         kurt_gl = sp.stats.kurtosis(data)
+#         skew_gl = sp.stats.skew(data)        
+#         statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
 
-featurematrix=feature_extraction(im_or,roi)
+#     featurematrix = np.array(statslist)    
+
+#     return featurematrix
+
+# featurematrix=feature_extraction(im_or,roi)
+
+#%%
+
+dist=5
+statslist=[]
+
+xcoord=roi[0][::3]
+ycoord=roi[1][::3]
+
+# Slicing window
+for k in range(np.shape(xcoord)[0]):
+    #print(k)
+    c=ycoord[k],xcoord[k]
+    data=(im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
+    #data=zlz.flatten()
+    mean_gl = np.mean(data)
+    med_gl  = np.median(data)
+    std_gl  = np.std(data)
+    kurt_gl = sp.stats.kurtosis(data)
+    skew_gl = sp.stats.skew(data)        
+    statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
+
+featurematrix = np.array(statslist)    
+
+roi=(xcoord,ycoord)
+
 
 #%% data normalization
 
@@ -160,13 +188,14 @@ def predmask(roi,predicted_label,label):
     return predictedmask
 # for i in range(len(x)):
 #     unodos[y[i],x[i]]=1
-           
+
+
 ggomask=predmask(roi,predicted_label,1)
 conmask=predmask(roi,predicted_label,2)
 #%%
 
 plt.imshow(ggomask,cmap='gray')
 plt.imshow(conmask,cmap='gray')
-
-plt.imshow(conmask+ggomask+lungmask)
+plt.figure()
+plt.imshow(conmask+ggomask,cmap='gray')
 
