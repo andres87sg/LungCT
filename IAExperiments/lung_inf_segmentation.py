@@ -115,10 +115,25 @@ def lunginfectionsegmentation(im_or):
     #lunginfmask = conmask2+ggomask2+lungmask
     lunginfmask = conmask_close+ggomask_close
     lunginfmask[lunginfmask>3]=0
-    
-    
-    
+
     return lunginfmask
+
+
+def regionsegmentation(im_or):
+    im_array=im_or[:,:,0]
+    grtr_mask=cv.imread(pathmask+im_namemask)
+    
+    mask=np.int16(grtr_mask[:,:,0]>0)
+    
+    kernel = np.ones((10, 10), np.uint8)
+    cropmask = cv.erode(mask, kernel)
+    
+    im_or = im_or[:,:,0]*cropmask
+    grtr_mask = grtr_mask[:,:,0]*cropmask
+    
+    final_mask=lunginfectionsegmentation(im_or)
+    
+    return final_mask
 
     
 #%%
@@ -133,34 +148,26 @@ pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-for i in range(len(listfiles)):
+#for i in range(len(listfiles)):
+for i in range(1,20):
+    
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
     
     # Graylevel image (array)
     im_or=cv.imread(path+im_name)
-    im_array=im_or[:,:,0]
-    grtr_mask=cv.imread(pathmask+im_namemask)
     
-    mask=np.int16(grtr_mask[:,:,0]>0)
-    
-    kernel = np.ones((10, 10), np.uint8)
-    cropmask = cv.erode(mask, kernel)
-    
-    im_or = im_or[:,:,0]*cropmask
-    grtr_mask = grtr_mask[:,:,0]*cropmask
-    
-    final_mask=lunginfectionsegmentation(im_or)
-    
-    plt.figure()
-    plt.subplot(1,2,2)
-    plt.imshow(final_mask,cmap='gray')
-    plt.title('segmentation')
-    plt.axis('off')
-    plt.subplot(1,2,1)
-    plt.imshow(im_or,cmap='gray')
-    plt.title('Im or')
-    plt.axis('off')
+    final_mask=regionsegmentation(im_or)
+       
+    # plt.figure()
+    # plt.subplot(1,2,2)
+    # plt.imshow(final_mask,cmap='gray')
+    # plt.title('segmentation')
+    # plt.axis('off')
+    # plt.subplot(1,2,1)
+    # plt.imshow(im_or,cmap='gray')
+    # plt.title('Im or')
+    # plt.axis('off')
 
 
 

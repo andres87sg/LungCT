@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 27 13:39:27 2021
-
+Este script está encargado de entrenar el modelo de knn
 @author: Andres
 """
 import math
