@@ -151,13 +151,14 @@ listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
 #for i in range(len(listfiles)):
-for i in range(1,10):
+for i in range(1,30):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
     
     # Graylevel image (array)
     im_or=cv.imread(path+im_name)
+    grtr_mask=cv.imread(im_namemask)
     
     scale=1
     im_or2=cv.resize(im_or,(512//scale,512//scale), 

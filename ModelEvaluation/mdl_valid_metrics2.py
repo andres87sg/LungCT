@@ -132,23 +132,23 @@ for i in range(len(listfiles)):
     # print(jack)
 
     
-    plt.figure()
-    plt.subplot(1,3,1)
-    plt.imshow(im_array,cmap='gray')
-    plt.axis('off')
-    plt.title('Gray Level')
+    # plt.figure()
+    # plt.subplot(1,3,1)
+    # plt.imshow(im_array,cmap='gray')
+    # plt.axis('off')
+    # plt.title('Gray Level')
     
-    plt.subplot(1,3,2)
-    plt.imshow(col_grtrmask,cmap='gray')
-    plt.axis('off')  
-    plt.title('Groundtruth')
+    # plt.subplot(1,3,2)
+    # plt.imshow(col_grtrmask,cmap='gray')
+    # plt.axis('off')  
+    # plt.title('Groundtruth')
     
     
-    plt.subplot(1,3,3)    
-    plt.imshow(col_predmask,cmap='gray')
-    plt.axis('off')
-    plt.title('Predicted')
-    plt.show()
+    # plt.subplot(1,3,3)    
+    # plt.imshow(col_predmask,cmap='gray')
+    # plt.axis('off')
+    # plt.title('Predicted')
+    # plt.show()
 
 #%% Show validation metrics (Jaccard Index (mean,std) )
 
@@ -223,24 +223,52 @@ def getcolormask(inputmask):
     return colormask,graymask
 
 # Jaccard Index
+# def jaccarindex(grtr_mask,pred_mask,label):
+    
+#     grtr=np.zeros([512,512])
+    
+#     # Choose pixels corresponding to label
+#     grtr[grtr_mask==label]=1
+    
+#     pred=np.zeros([512,512])
+#     pred[pred_mask==label]=1
+    
+#     # Intersection
+#     inter= np.sum(grtr*pred>=1)
+#     #print(inter)
+    
+#     # Union
+#     union=np.sum(grtr+pred>=1)
+#     #print(union)
+#     jaccard=inter/union
+    
+#     return jaccard
+
 def jaccarindex(grtr_mask,pred_mask,label):
     
     grtr=np.zeros([512,512])
     
-    # Choose pixels corresponding to label
+    # # Choose pixels corresponding to label
     grtr[grtr_mask==label]=1
     
     pred=np.zeros([512,512])
     pred[pred_mask==label]=1
     
-    # Intersection
-    inter= np.sum(grtr*pred>=1)
-    #print(inter)
+    # # Intersection
+    # inter= np.sum(grtr*pred>=1)
+    # #print(inter)
     
-    # Union
-    union=np.sum(grtr+pred>=1)
+    # # Union
+    # union=np.sum(grtr+pred>=1)
     #print(union)
-    jaccard=inter/union
+    
+    true=np.float64(np.sum(grtr.flatten()*pred.flatten()))
+    total=np.float64(np.sum(grtr.flatten()))
+    
+    # print(true)
+    # print(total)
+    
+    jaccard=np.float64(true/total)
     
     return jaccard
 
