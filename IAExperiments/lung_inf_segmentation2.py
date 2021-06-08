@@ -129,7 +129,7 @@ def regionsegmentation(im_or,scale):
     
     mask=np.int16(grtr_mask[:,:,0]>0)
     
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((2, 2), np.uint8)
     cropmask = cv.erode(mask, kernel)
     
     im_or = im_or[:,:,0]*cropmask
@@ -152,8 +152,8 @@ pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
-#for i in range(len(listfiles)):
-for i in range(1,10):
+for i in range(len(listfiles)):
+#for i in range(1,10):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
@@ -161,7 +161,7 @@ for i in range(1,10):
     # Graylevel image (array)
     im_or=cv.imread(path+im_name)
     
-    scale=2
+    scale=1  
     im_or2=cv.resize(im_or,(512//scale,512//scale), 
                         interpolation = cv.INTER_AREA)
     

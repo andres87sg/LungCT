@@ -124,10 +124,7 @@ def regionsegmentation(im_or):
    
     grtr_mask=cv.imread(pathmask+im_namemask)
     
-    scale=2
-    grtr_mask=cv.resize(grtr_mask,(512//scale,512//scale),
-                        interpolation = cv.INTER_AREA)
-    
+   
     mask=np.int16(grtr_mask[:,:,0]>0)
     
     kernel = np.ones((5, 5), np.uint8)
@@ -162,7 +159,7 @@ for i in range(1,10):
     # Graylevel image (array)
     im_or=cv.imread(path+im_name)
     
-    scale=2
+    scale=1
     im_or2=cv.resize(im_or,(512//scale,512//scale), 
                         interpolation = cv.INTER_AREA)
     

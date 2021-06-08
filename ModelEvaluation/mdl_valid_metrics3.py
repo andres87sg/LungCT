@@ -118,24 +118,52 @@ def getcolormask(inputmask):
     return colormask,graymask
 
 # Jaccard Index
+# def jaccarindex(grtr_mask,pred_mask,label):
+    
+#     grtr=np.zeros([512,512])
+    
+#     # Choose pixels corresponding to label
+#     grtr[grtr_mask==label]=1
+    
+#     pred=np.zeros([512,512])
+#     pred[pred_mask==label]=1
+    
+#     # Intersection
+#     inter= np.sum(grtr*pred>=1)
+#     #print(inter)
+    
+#     # Union
+#     union=np.sum(grtr+pred>=1)
+#     #print(union)
+#     jaccard=inter/union
+    
+#     return jaccard
+
 def jaccarindex(grtr_mask,pred_mask,label):
     
     grtr=np.zeros([512,512])
     
-    # Choose pixels corresponding to label
+    # # Choose pixels corresponding to label
     grtr[grtr_mask==label]=1
     
     pred=np.zeros([512,512])
     pred[pred_mask==label]=1
     
-    # Intersection
-    inter= np.sum(grtr*pred>=1)
-    #print(inter)
+    # # Intersection
+    # inter= np.sum(grtr*pred>=1)
+    # #print(inter)
     
-    # Union
-    union=np.sum(grtr+pred>=1)
+    # # Union
+    # union=np.sum(grtr+pred>=1)
     #print(union)
-    jaccard=inter/union
+    
+    true=np.float64(np.sum(grtr.flatten()*pred.flatten()))
+    total=np.float64(np.sum(grtr.flatten()))
+    
+    # print(true)
+    # print(total)
+    
+    jaccard=np.float64(true/total)
     
     return jaccard
 
@@ -160,8 +188,8 @@ jaccard_df=[] #Jaccard index dataframe
 model_filename = 'KNNmodel.pkl'
 clf_model = joblib.load(model_filename)
 
-#for i in range(15,21):
-for i in range(len(listfiles)):
+for i in range(25,30):
+#for i in range(len(listfiles)):
     
     # List of files
     im_name = listfiles[i] # Gray level
@@ -217,30 +245,25 @@ for i in range(len(listfiles)):
         #print(jaccard_list[index])
     
     jaccard_df.append(jaccard_list)
-    jack=jaccarindex(grtr_mask,pred_mask,2)
-    print(jack)
-    
-    jack=jaccarindex(grtr_mask,pred_mask,3)
-    print(jack)
 
     
-    # plt.figure()
-    # plt.subplot(1,3,1)
-    # plt.imshow(im_array,cmap='gray')
-    # plt.axis('off')
-    # plt.title('Gray Level')
+    plt.figure()
+    plt.subplot(1,3,1)
+    plt.imshow(im_array,cmap='gray')
+    plt.axis('off')
+    plt.title('Gray Level')
     
-    # plt.subplot(1,3,2)
-    # plt.imshow(col_grtrmask,cmap='gray')
-    # plt.axis('off')  
-    # plt.title('Groundtruth')
+    plt.subplot(1,3,2)
+    plt.imshow(col_grtrmask,cmap='gray')
+    plt.axis('off')  
+    plt.title('Groundtruth')
     
     
-    # plt.subplot(1,3,3)    
-    # plt.imshow(col_predmask,cmap='gray')
-    # plt.axis('off')
-    # plt.title('Predicted')
-    # plt.show()
+    plt.subplot(1,3,3)    
+    plt.imshow(col_predmask,cmap='gray')
+    plt.axis('off')
+    plt.title('Predicted')
+    plt.show()
 
 #%% Show validation metrics (Jaccard Index (mean,std) )
 
@@ -283,7 +306,7 @@ def kmeanscluster(im_or):
 
 def feature_extraction(im_or,roi,subsample):
     
-    dist=5
+    dist=3
     statslist=[]
     
     xcoord=roi[0][::subsample]
@@ -329,7 +352,7 @@ def lunginfectionsegmentation(im_or):
     # Region of interest
     roi = np.where(lunginfmask == 1)
     
-    subsample=3
+    subsample=5
     
     featurematrix=feature_extraction(im_or,roi,subsample)
     scaler = preprocessing.StandardScaler().fit(featurematrix)
