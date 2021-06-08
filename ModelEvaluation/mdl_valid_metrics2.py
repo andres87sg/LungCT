@@ -12,10 +12,10 @@ https://stackoverflow.com/questions/53248099/keras-image-segmentation-using-gray
 import tensorflow as tf
 import tensorflow.keras as keras
 
-from tensorflow.keras import Input,layers, models
-from tensorflow.keras.layers import Conv2DTranspose,Dropout,Conv2D,BatchNormalization, Activation,MaxPooling2D
-from tensorflow.keras import Model
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
+# from tensorflow.keras import Input,layers, models
+# from tensorflow.keras.layers import Conv2DTranspose,Dropout,Conv2D,BatchNormalization, Activation,MaxPooling2D
+# from tensorflow.keras import Model
+# from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 
 import math
 import albumentations as A

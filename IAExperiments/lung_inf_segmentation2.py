@@ -70,7 +70,7 @@ def feature_extraction(im_or,roi,subsample):
 
     return featurematrix
 
-def predmask(roi,subsample,predicted_label,label):
+def predmask(im_or,roi,subsample,predicted_label,label):
     
     #subsample=1   
     predcoordy=roi[0][::subsample][predicted_label==label]
@@ -103,8 +103,8 @@ def lunginfectionsegmentation(im_or):
     
     predicted_label = clf_model.predict(featurematrix_norm)
     
-    ggomask=predmask(roi,subsample,predicted_label,1)
-    conmask=predmask(roi,subsample,predicted_label,2)
+    ggomask=predmask(im_or,roi,subsample,predicted_label,1)
+    conmask=predmask(im_or,roi,subsample,predicted_label,2)
       
     kernel = np.ones((subsample,subsample), np.uint8)
     ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
@@ -118,13 +118,12 @@ def lunginfectionsegmentation(im_or):
     return lunginfmask
 
 
-def regionsegmentation(im_or):
+def regionsegmentation(im_or,scale):
     im_array=im_or[:,:,0]
     
    
     grtr_mask=cv.imread(pathmask+im_namemask)
     
-    scale=2
     grtr_mask=cv.resize(grtr_mask,(512//scale,512//scale),
                         interpolation = cv.INTER_AREA)
     
@@ -166,17 +165,17 @@ for i in range(1,10):
     im_or2=cv.resize(im_or,(512//scale,512//scale), 
                         interpolation = cv.INTER_AREA)
     
-    final_mask=regionsegmentation(im_or2)
+    final_mask=regionsegmentation(im_or2,scale)
        
-    plt.figure()
-    plt.subplot(1,2,2)
-    plt.imshow(final_mask,cmap='gray')
-    plt.title('segmentation')
-    plt.axis('off')
-    plt.subplot(1,2,1)
-    plt.imshow(im_or2,cmap='gray')
-    plt.title('Im or')
-    plt.axis('off')
+    # plt.figure()
+    # plt.subplot(1,2,2)
+    # plt.imshow(final_mask,cmap='gray')
+    # plt.title('segmentation')
+    # plt.axis('off')
+    # plt.subplot(1,2,1)
+    # plt.imshow(im_or2,cmap='gray')
+    # plt.title('Im or')
+    # plt.axis('off')
 
 
 
