@@ -191,85 +191,85 @@ def feature_extraction(im_or,roi,subsample):
 
     return featurematrix
 
-def predmask(roi,subsample,predicted_label,label):
+def predmask(im_or,roi,subsample,predicted_label,label):
     
     #subsample=1   
     predcoordy=roi[0][::subsample][predicted_label==label]
     predcoordx=roi[1][::subsample][predicted_label==label]
-    predictedmask=np.zeros((np.shape(im_dcm)[0],np.shape(im_dcm)[1]))
+    predictedmask=np.zeros((np.shape(im_or)[0],np.shape(im_or)[1]))
     predictedmask[predcoordy,predcoordx]=label+1
     
     return predictedmask
 
 
-def lunginfectionsegmentation(im_or):
+def lunginfectionsegmentation(im_or,clf_model):
 
-    segmented_image=kmeanscluster(im_or)    
-    clusterlabels = np.unique(segmented_image)   
     
-    print(len(clusterlabels))
-    a=0
+    
+    segmented_image=kmeanscluster(im_or)    
+    clusterlabels = np.unique(segmented_image)  
+    #print(len(clusterlabels))
     
     if len(clusterlabels)>1:
-        
+    
         lungmask = segmented_image==clusterlabels[1]    
-        lunginfmask=np.int16(segmented_image==clusterlabels[2])
         
-        kernel = np.ones((3,3), np.uint8)
-        imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
-        lunginfmask = imopen.copy()
+        if len(clusterlabels)>2:
+            lunginfmask=np.int16(segmented_image==clusterlabels[2])
+            
+            # kernel = np.ones((3,3), np.uint8)
+            # imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
+            # lunginfmask = imopen.copy()
+            
+            # Region of interest
+            roi = np.where(lunginfmask == 1)
+            
+            subsample=3
+            
+            featurematrix=feature_extraction(im_or,roi,subsample)
+            scaler = preprocessing.StandardScaler().fit(featurematrix)
+            featurematrix_norm=scaler.transform(featurematrix)
+            
+            predicted_label = clf_model.predict(featurematrix_norm)
+            
+            ggomask=predmask(im_or,roi,subsample,predicted_label,1)
+            conmask=predmask(im_or,roi,subsample,predicted_label,2)
+              
+            kernel = np.ones((subsample,subsample), np.uint8)
+            ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
+            conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
+            
+            
+            #lunginfmask = conmask2+ggomask2+lungmask
+            lunginfmask = conmask_close+ggomask_close
+            lunginfmask[lunginfmask>3]=0
         
-        # Region of interest
-        roi = np.where(lunginfmask == 1)
-        
-        subsample=3
-        
-        featurematrix=feature_extraction(im_or,roi,subsample)
-        scaler = preprocessing.StandardScaler().fit(featurematrix)
-        featurematrix_norm=scaler.transform(featurematrix)
-        
-        model_filename = 'KNNmodel.pkl'
-        clf_model = joblib.load(model_filename)
-        
-        predicted_label = clf_model.predict(featurematrix_norm)
-        
-        ggomask=predmask(roi,subsample,predicted_label,1)
-        conmask=predmask(roi,subsample,predicted_label,2)
-          
-        kernel = np.ones((subsample,subsample), np.uint8)
-        ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
-        conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
-        
-        
-        #lunginfmask = conmask2+ggomask2+lungmask
-        lunginfmask = conmask_close+ggomask_close
-        lunginfmask[lunginfmask>3]=0
+        else:
+           lunginfmask=segmented_image.copy()
+           lunginfmask[lunginfmask>0]=1
     
     else:
         lunginfmask=segmented_image.copy()
-        
+        lunginfmask[lunginfmask>0]=1
+
     return lunginfmask
 
 
-def regionsegmentation(im_or):
+def regionsegmentation(im_or,clf_model):
+    
     im_array=im_or[:,:,0]
     
-    [m,n]=np.shape(im_array)
-   
-    mask=np.zeros((m,n))
+    mask=np.zeros((np.shape(im_or)[0],np.shape(im_or)[1]))
+    
     mask[im_array>0]=1
-    #grtr_mask=cv.imread(pathmask+im_namemask)
     
-   
-    #mask=np.int16(grtr_mask[:,:,0]>0)
-    
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     cropmask = cv.erode(mask, kernel)
     
     im_or = im_or[:,:,0]*cropmask
-    #grtr_mask = grtr_mask[:,:,0]*cropmask
+
     
-    final_mask=lunginfectionsegmentation(im_or)
+    final_mask=lunginfectionsegmentation(im_or,clf_model)
     
     return final_mask
 
@@ -279,7 +279,7 @@ def regionsegmentation(im_or):
 #case='22474FA3'
 patient_no = 8
 
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/AF935CEE/'
 
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
 listfiles = os.listdir(origpath)
@@ -302,10 +302,14 @@ start_time = time()
 dcmimages=[]
 maskimages=[]
 
+model_filename = 'KNNmodel.pkl'
+clf_model = joblib.load(model_filename)
 
-for i in range(len(listfiles)):
-#for i in range(30,31):
+#for i in range(len(listfiles)):
+for i in range(100,101):
 
+#for i in range(284,285):
+    
     """
     Step 1 -> Prepare dcm image into Lung windows (WW=-500, WW=1500)
     """
@@ -361,12 +365,12 @@ for i in range(len(listfiles)):
     """
     Step 3 -> Segment consolidation and ground-glass opacity segmentation
     """
-    scale = 1
+    scale = 4
     
     segmentedlungs=cv.resize(segmentedlungs,(512//scale,512//scale), 
                     interpolation = cv.INTER_AREA)
 
-    pred_maskmulti=regionsegmentation(segmentedlungs)
+    pred_maskmulti=regionsegmentation(segmentedlungs,clf_model)
     
     # Predicted mask : color and gray
     col_predmask,gray_predmask = getcolormask(pred_maskmulti)
@@ -427,8 +431,8 @@ for i in range(1,len(dcmimages)-1):
 
 #%%
 
-pp[0].save('C:/Users/Andres/Desktop/109BB5EC.gif',
-               save_all=True, append_images=pp[1:], optimize=False, duration=200, loop=0)
+# pp[0].save('C:/Users/Andres/Desktop/109BB5EC.gif',
+#                save_all=True, append_images=pp[1:], optimize=False, duration=200, loop=0)
 
 
 
