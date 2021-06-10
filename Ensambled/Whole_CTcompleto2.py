@@ -167,7 +167,7 @@ def kmeanscluster(im_or):
     return segmented_image
 
 def feature_extraction(im_or,roi,subsample):
-    dist=3
+    dist=5
     statslist=[]
     
     #subsample=1
@@ -279,7 +279,7 @@ def regionsegmentation(im_or):
 #case='22474FA3'
 patient_no = 8
 
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/4F0C7E23/'
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/'+ case +'/' 
 listfiles = os.listdir(origpath)
@@ -427,7 +427,7 @@ for i in range(1,len(dcmimages)-1):
 
 #%%
 
-pp[0].save('C:/Users/Andres/Desktop/40.gif',
+pp[0].save('C:/Users/Andres/Desktop/109BB5EC.gif',
                save_all=True, append_images=pp[1:], optimize=False, duration=200, loop=0)
 
 
