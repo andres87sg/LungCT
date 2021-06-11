@@ -425,7 +425,7 @@ for i in range(1,len(dcmimages)-1):
     plt.imshow(im2)
     pp.append(im2)
     plt.axis("off")
-
+    a=0
     # Color label (black, green, red, blue)
     # colorlabel=([0,0,0],[0,255,0],[255,0,0],[0,0,255]) # Colors
 
