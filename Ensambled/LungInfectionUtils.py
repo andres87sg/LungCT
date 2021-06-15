@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 11 07:48:10 2021
-
-@author: Andres
-"""
-
 import pydicom as dicom
 import matplotlib.pyplot as plt
 import cv2 as cv
@@ -105,7 +98,6 @@ def getlungsegmentation(inputimg,predictedmask):
                                     (imgnormsize[0],imgnormsize[1]),
                                     interpolation = cv.INTER_AREA)
                                     )
-    print(np.unique(predictedmaskresize))
     
     kernel = np.ones((SEsize,SEsize), np.uint8)
     cropmask = cv.erode(predictedmaskresize, kernel)
@@ -167,9 +159,7 @@ def predmask(im_or,roi,subsample,predicted_label,label):
 
 
 def lunginfectionsegmentation(im_or,clf_model):
-
-    
-    
+ 
     segmented_image=kmeanscluster(im_or)    
     clusterlabels = np.unique(segmented_image)  
     #print(len(clusterlabels))
@@ -203,8 +193,6 @@ def lunginfectionsegmentation(im_or,clf_model):
             ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
             conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
             
-            
-            #lunginfmask = conmask2+ggomask2+lungmask
             lunginfmask = conmask_close+ggomask_close
             lunginfmask[lunginfmask>3]=0
         
