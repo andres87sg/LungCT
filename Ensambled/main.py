@@ -17,7 +17,7 @@ from tensorflow.keras.models import load_model
 
 from LungInfectionUtils import dcm_convert,getlungsegmentation,getprepareimgCNN
 from LungInfectionUtils import lunginfectionsegmentation
-from LungInfectionUtils import dcm_size
+from LungInfectionUtils import dcm_size,dcm_imresize
 
 from LungInfectionConstantManager import WinLength,WinWidth
 
@@ -30,13 +30,14 @@ model_lungsegmentation=load_model('C:/Users/Andres/Desktop/CTClassif/lng_seg_mdl
 model_filename = 'KNNmodel.pkl'
 clf_model = joblib.load(model_filename)
 
-listfiles = os.listdir(origpath)
-i=10
-dcmfilename = listfiles[i]
 #%%
+listfiles = os.listdir(origpath)
+i=40
+dcmfilename = listfiles[i]
+
 
 dcm_img = dicom.dcmread(origpath+dcmfilename)
-dcmlen,dcmwid = dcm_size(dcm_img)
+dcm_heigth,dcm_length = dcm_size(dcm_img)
 
 #Preprocessing
 [norm_img, ins_num] = dcm_convert(dcm_img,WinLength,WinWidth) 
@@ -46,9 +47,11 @@ predictedmask = model_lungsegmentation.predict(inputCNNimg)
 
 lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
 
-pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg ,clf_model)
+pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg,clf_model)
 
-plt.imshow(pred_maskmulti)
+#%%
+pred_maskmulti_RES=np.round(dcm_imresize(pred_maskmulti,dcm_heigth,dcm_length))
+plt.imshow(pred_maskmulti_RES)
 
 
 

@@ -22,8 +22,14 @@ from LungInfectionConstantManager import imgnormsize, inputimgCNNscale, SEsize
 
 def dcm_size(dcm_img):
     img_array = dcm_img.pixel_array
-    (dcmwid,dcmlen)=np.shape(img_array)
-    return dcmlen,dcmwid
+    (dcm_heigth,dcm_length)=np.shape(img_array)
+    return dcm_heigth,dcm_length
+
+def dcm_imresize(imginput,dcm_heigth,dcm_length):
+    
+     imgoutput=cv.resize(imginput,(dcm_length,dcm_heigth), 
+                        interpolation = cv.INTER_NEAREST) 
+     return imgoutput
     
 def dcm_convert(dcm_img,WL,WW): 
    
