@@ -22,8 +22,9 @@ from LungInfectionConstantManager import imgnormsize, inputimgCNNscale, SEsize
 
 def dcm_size(dcm_img):
     img_array = dcm_img.pixel_array
-    (dcm_heigth,dcm_length)=np.shape(img_array)
-    return dcm_heigth,dcm_length
+    #(dcm_heigth,dcm_length)=np.shape(img_array)
+    dcm_size=np.shape(img_array)
+    return dcm_size
 
 def dcm_imresize(imginput,dcm_heigth,dcm_length):
     
@@ -101,7 +102,7 @@ def getprepareimgCNN(inputimg):
 def getlungsegmentation(inputimg,predictedmask):
 
     predictedmaskresize = np.round( cv.resize(predictedmask[0,:,:,0],
-                                    (512,512),
+                                    (imgnormsize[0],imgnormsize[1]),
                                     interpolation = cv.INTER_AREA)
                                     )
     print(np.unique(predictedmaskresize))
