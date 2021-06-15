@@ -9,5 +9,7 @@ WinWidth=1500
 WinLength=-500
 
 imgnormsize = [512,512]
-nn_image_scale = 4
+inputimgCNNscale = 4
 
+SEsize = 5
+#kernel = np.ones((5, 5), np.uint8)
