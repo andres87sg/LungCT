@@ -15,7 +15,6 @@ from LungInfectionConstantManager import WinLength,WinWidth
 from AbstractProducts import load_mdl_lungsegmentation,load_mdl_infsegmentation
 
 
-
 class LungInfectionModel():
 
     def __init__(self,mdl1,mdl2):
@@ -32,9 +31,8 @@ class LungInfectionModel():
         return norm_img, ins_num, dcm_originalsize
     
     def run_prediction(self,norm_img,targetsize):
+        
         inputCNNimg=getprepareimgCNN(norm_img)
-        models=self.loadmodels()
-        #model_lungsegmentation=models[0]
         predictedmask = self.mdl1.predict(inputCNNimg)
         lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
         pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg,
@@ -52,27 +50,26 @@ class LungInfectionModel():
     def run_training(self):
         pass
 
-#%%
+#%% Prueba 
 
 origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/AF935CEE/'
 listfiles = os.listdir(origpath)
 
 mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
 
-#%%
 from time import time
 start_time = time() 
 
-for i in range(len(listfiles)):
+for i in range(50,55):
     dcmfilename = listfiles[i]
     
     dcm_img = dicom.dcmread(origpath+dcmfilename)
     
     [norm_img, ins_num,dcm_originalsize]=mdl.run_preprocessing(dcm_img)
     pred_mask=mdl.run_prediction(norm_img,dcm_originalsize)
-    # plt.figure()
-    # plt.imshow(pred_mask,cmap='gray')
-    # plt.axis('off')
+    plt.figure()
+    plt.imshow(pred_mask,cmap='gray')
+    plt.axis('off')
     
 elapsed_time = time() - start_time 
 print(elapsed_time)
