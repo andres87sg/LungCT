@@ -21,7 +21,10 @@ class LungInfectionModel():
         
         self.mdl1=mdl1
         self.mdl2=mdl2
-      
+    
+    def get_dcmmetadata(self, dcm_img):
+        
+        pass
     
     def run_preprocessing(self, dcm_img):
         
@@ -43,6 +46,14 @@ class LungInfectionModel():
                                                  targetsize[1]))
         
         return pred_maskmulti_res
+    
+    def savemask(self,targetimage,instancenum):
+        
+        #print('a')
+        img2=Image.fromarray(np.uint8((targetimage/3)*255))
+        img2.save("C:/Users/Andres/Desktop/Nuevo/img_"+str(instancenum)+'.png')
+        pass
+        
 
     def run_evaluation(self):
         pass
@@ -60,13 +71,19 @@ mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
 from time import time
 start_time = time() 
 
-for i in range(50,55):
+#for i in range(0,1):
+for i in range(len(listfiles)):
     dcmfilename = listfiles[i]
     
     dcm_img = dicom.dcmread(origpath+dcmfilename)
     
     [norm_img, ins_num,dcm_originalsize]=mdl.run_preprocessing(dcm_img)
     pred_mask=mdl.run_prediction(norm_img,dcm_originalsize)
+    
+    img2=mdl.savemask(pred_mask,ins_num)
+
+    
+    
     plt.figure()
     plt.imshow(pred_mask,cmap='gray')
     plt.axis('off')
