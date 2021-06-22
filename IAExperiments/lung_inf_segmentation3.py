@@ -156,7 +156,7 @@ listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
 #for i in range(len(listfiles)):
-for i in range(29,30):
+for i in range(10,100):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
@@ -164,10 +164,6 @@ for i in range(29,30):
     # Graylevel image (array)
     im_or=cv.imread(path+im_name)
     # grtr_mask=cv.imread(im_namemask)
-    
-    scale=4
-    im_or2=cv.resize(im_or,(512//scale,512//scale), 
-                        interpolation = cv.INTER_AREA)
     
     
     im_array=im_or[:,:,0]
@@ -183,58 +179,140 @@ for i in range(29,30):
     
     
     segmented_image=kmeanscluster(im_or)    
-    clusterlabels = np.unique(segmented_image)  
+    
+    scale=4
+    scaled_im_or=cv.resize(im_or,(512//scale,512//scale), 
+                        interpolation = cv.INTER_AREA)
+    
+    scaled_segmented_image=cv.resize(segmented_image,(512//scale,512//scale), 
+                        interpolation = cv.INTER_AREA)
+    
+    
+    #clusterlabels = np.unique(segmented_image)  
+    
+    #plt.imshow(scaled_segmented_image>0)
+    
+    roi = np.where(scaled_segmented_image>0)
+    xcoord=roi[0]
+    ycoord=roi[1]
+    
+    dist=3
+    statslist=[]
+    
+    for k in range(np.shape(xcoord)[0]):
+    
+        c=ycoord[k],xcoord[k]
+        data=(scaled_im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
+        mean_gl = np.mean(data)
+        med_gl  = np.median(data)
+        std_gl  = np.std(data)
+        kurt_gl = sp.stats.kurtosis(data)
+        skew_gl = sp.stats.skew(data)        
+        statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
+
+    featurematrix = np.array(statslist) 
+    
+    scaler = preprocessing.StandardScaler().fit(featurematrix)
+    featurematrix_norm=scaler.transform(featurematrix)
+    
+    predicted_label = clf_model.predict(featurematrix_norm)
+    
+    subsample=1
+    lngmask=predmask(scaled_im_or,roi,subsample,predicted_label,0)
+    ggomask=predmask(scaled_im_or,roi,subsample,predicted_label,1)
+    conmask=predmask(scaled_im_or,roi,subsample,predicted_label,2)
+    
+    kernel = np.ones((2, 2), np.uint8)
+    lngmask = cv.morphologyEx(lngmask, cv.MORPH_OPEN, kernel)    
+    ggomask = cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)    
+    conmask = cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel) 
+    
+    lunginfmask = ggomask+conmask
+    lunginfmask[lunginfmask>3]=0
+    
+    final_mask=cv.resize(lunginfmask,(512,512),interpolation = cv.INTER_AREA)
+    plt.figure()
+    plt.imshow(final_mask,cmap='gray')
+    
+    
+#%%
+kernel = np.ones((10, 10), np.uint8)
+ff = cv.morphologyEx(final_mask, cv.MORPH_CLOSE, kernel) 
+#cropmask = cv.erode(mask, kernel)
+
+
+# plt.imshow(lngmask,cmap='gray')
+# plt.figure()
+# plt.imshow(ggomask,cmap='gray')
+# plt.figure()
+# plt.imshow(conmask,cmap='gray')    
+
+
+    # xcoord=roi[0][::subsample]
+    # ycoord=roi[1][::subsample]
     
     
     
     
-    if len(clusterlabels)>1:
+    # roi = np.where(lunginfmask >0 1)
     
-        lungmask = segmented_image==clusterlabels[1]    
-        lunginfmask=np.int16(segmented_image==clusterlabels[2])
+    # for i in clusterlabels:
         
-        # kernel = np.ones((3,3), np.uint8)
-        # imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
-        # lunginfmask = imopen.copy()
         
-        # Region of interest
-        roi = np.where(lunginfmask == 1)
         
-        subsample=3
+    #     print(i)
         
-        featurematrix=feature_extraction(im_or,roi,subsample)
-        scaler = preprocessing.StandardScaler().fit(featurematrix)
-        featurematrix_norm=scaler.transform(featurematrix)
         
-        predicted_label = clf_model.predict(featurematrix_norm)
+    
+    
+    
+    # if len(clusterlabels)>1:
+    
+    #     lungmask = segmented_image==clusterlabels[1]    
+    #     lunginfmask=np.int16(segmented_image==clusterlabels[2])
         
-        ggomask=predmask(im_or,roi,subsample,predicted_label,1)
-        conmask=predmask(im_or,roi,subsample,predicted_label,2)
+    #     # kernel = np.ones((3,3), np.uint8)
+    #     # imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
+    #     # lunginfmask = imopen.copy()
+        
+    #     # Region of interest
+        
+        
+    #     subsample=3
+        
+    #     featurematrix=feature_extraction(im_or,roi,subsample)
+    #     scaler = preprocessing.StandardScaler().fit(featurematrix)
+    #     featurematrix_norm=scaler.transform(featurematrix)
+        
+    #     predicted_label = clf_model.predict(featurematrix_norm)
+        
+    #     ggomask=predmask(im_or,roi,subsample,predicted_label,1)
+    #     conmask=predmask(im_or,roi,subsample,predicted_label,2)
           
-        kernel = np.ones((subsample,subsample), np.uint8)
-        ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
-        conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
+    #     kernel = np.ones((subsample,subsample), np.uint8)
+    #     ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
+    #     conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
         
         
-        #lunginfmask = conmask2+ggomask2+lungmask
-        lunginfmask = conmask_close+ggomask_close
-        lunginfmask[lunginfmask>3]=0
+    #     #lunginfmask = conmask2+ggomask2+lungmask
+    #     lunginfmask = conmask_close+ggomask_close
+    #     lunginfmask[lunginfmask>3]=0
     
-    else:
-        lunginfmask=segmented_image.copy()
+    # else:
+    #     lunginfmask=segmented_image.copy()
     
     
-    #final_mask=regionsegmentation(im_or2)
+    # #final_mask=regionsegmentation(im_or2)
        
-    # plt.figure()
-    # plt.subplot(1,2,2)
-    # plt.imshow(final_mask,cmap='gray')
-    # plt.title('segmentation')
-    # plt.axis('off')
-    # plt.subplot(1,2,1)
-    # plt.imshow(im_or2,cmap='gray')
-    # plt.title('Im or')
-    # plt.axis('off')
+    # # plt.figure()
+    # # plt.subplot(1,2,2)
+    # # plt.imshow(final_mask,cmap='gray')
+    # # plt.title('segmentation')
+    # # plt.axis('off')
+    # # plt.subplot(1,2,1)
+    # # plt.imshow(im_or2,cmap='gray')
+    # # plt.title('Im or')
+    # # plt.axis('off')
 
 
 
