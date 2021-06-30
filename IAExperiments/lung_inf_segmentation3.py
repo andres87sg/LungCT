@@ -142,7 +142,7 @@ listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
 #for i in range(len(listfiles)):
-for i in range(9,10):
+for i in range(10,11):
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
