@@ -94,14 +94,29 @@ def window_img_transf(image, win_center, win_width):
 
 def GetPrepareImage(img_in):
     
-    im_array=img_in[:,:,0]
+    #im_array=img_in
     mask=np.zeros((np.shape(img_in)[0],np.shape(img_in)[1]))
-    mask[im_array>0]=1
+    # mask[im_array>0]=1
+    mask[img_in>0]=1
     kernel = np.ones((3, 3), np.uint8)
     cropmask = cv.erode(mask, kernel)
-    img_out = img_in[:,:,0]*cropmask
+    img_out = img_in*cropmask
     
     return img_out
+
+def getlungsegmentation(inputimg,predictedmask):
+
+    predictedmaskresize = np.round( cv.resize(predictedmask[0,:,:,0],
+                                    (imgnormsize[0],imgnormsize[1]),
+                                    interpolation = cv.INTER_AREA)
+                                    )
+    
+    kernel = np.ones((SEsize,SEsize), np.uint8)
+    cropmask = cv.erode(predictedmaskresize, kernel)
+    
+    outputimg = inputimg[:,:,0]*cropmask
+    return outputimg
+
 
 def GetFeatureExtraction(scaled_im_or,scaled_segmented_image):
     
@@ -148,7 +163,7 @@ def GetClusteredMask(img_in,scale):
     
     return scaled_im_or,scaled_segmented_image
 
-def GetPrediction(featurematrix):
+def GetPrediction(featurematrix,clf_model):
     scaler = preprocessing.StandardScaler().fit(featurematrix)
     featurematrix_norm=scaler.transform(featurematrix)
 
@@ -178,7 +193,7 @@ def GetLungInfSegmentation(scl_img_or,predicted_label):
     ggomask = cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)    
     conmask = cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel) 
     
-    lunginfmask = ggomask+conmask   
+    lunginfmask = lngmask+ggomask+conmask   
     
     lunginfmask[lunginfmask>3]=0
     
