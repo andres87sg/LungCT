@@ -8,12 +8,19 @@ import cv2 as cv
 import os
 import pydicom as dicom
 
-from LungInfectionUtils import dcm_convert,getlungsegmentation,getprepareimgCNN
-from LungInfectionUtils import lunginfectionsegmentation
-from LungInfectionUtils import dcm_size,dcm_imresize
+from LungInfectionUtils import dcm_size, dcm_imresize, dcm_convert, getprepareimgCNN, getlungsegmentation
+from LungInfectionUtils import transform_to_hu, window_img_transf
+from LungInfectionUtils import GetPrepareImage, GetFeatureExtraction
+from LungInfectionUtils import GetClusteredMask, GetPrediction, GetPredictedMask,GetLungInfSegmentation
+
+# from LungInfectionUtils import dcm_convert,GetLungInfSegmentation
+# from LungInfectionUtils import lunginfectionsegmentation
+# from LungInfectionUtils import dcm_size,dcm_imresize
+
 from LungInfectionConstantManager import WinLength,WinWidth
 from AbstractProducts import load_mdl_lungsegmentation,load_mdl_infsegmentation
 
+#%%
 
 class LungInfectionModel():
 
@@ -33,16 +40,19 @@ class LungInfectionModel():
     def run_prediction(self,norm_img,targetsize):
         
         inputCNNimg=getprepareimgCNN(norm_img)
+        a='aqui'
         predictedmask = self.mdl1.predict(inputCNNimg)
+    
         lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
-        pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg,
-                                                 self.mdl2)
+
+        scl_img_or,scl_segm_img=GetClusteredMask(lungsegmentationimg,scale=2)
+        featurematrix = GetFeatureExtraction(scl_img_or,scl_segm_img)
+        predicted_label = GetPrediction(featurematrix)
+        final_mask = GetLungInfSegmentation(scl_img_or,predicted_label)
         
-        pred_maskmulti_res=np.round(dcm_imresize(pred_maskmulti,
-                                                 targetsize[0],
-                                                 targetsize[1]))
+        #pred_mask_multi_res= predictedmask.copy()
         
-        return pred_maskmulti_res
+        return final_mask
 
     def run_evaluation(self):
         pass
@@ -60,16 +70,16 @@ mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
 from time import time
 start_time = time() 
 
-for i in range(50,55):
+for i in range(50,51):
     dcmfilename = listfiles[i]
     
     dcm_img = dicom.dcmread(origpath+dcmfilename)
     
     [norm_img, ins_num,dcm_originalsize]=mdl.run_preprocessing(dcm_img)
     pred_mask=mdl.run_prediction(norm_img,dcm_originalsize)
-    plt.figure()
-    plt.imshow(pred_mask,cmap='gray')
-    plt.axis('off')
+    # plt.figure()
+    # plt.imshow(pred_mask,cmap='gray')
+    # plt.axis('off')
     
 elapsed_time = time() - start_time 
 print(elapsed_time)

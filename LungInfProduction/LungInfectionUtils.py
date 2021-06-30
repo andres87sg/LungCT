@@ -49,6 +49,21 @@ def dcm_convert(dcm_img,WL,WW):
 
     return window_img, instance_number
 
+def getprepareimgCNN(inputimg):
+    imgscale = inputimgCNNscale
+    # Prepare input image as input in the model 
+    inputimg=cv.resize(inputimg,(imgnormsize[0]//imgscale,
+                               imgnormsize[1]//imgscale),
+                       interpolation = cv.INTER_AREA)
+      
+    # Input image normalization imnorm = im/max(im)
+    norminputimg=inputimg/np.max(inputimg)
+    
+    # Adding one dimension to array
+    nn_inputimg = np.expand_dims(norminputimg,axis=[0])
+    
+    return nn_inputimg
+
     
 # Transform dcm to HU (Hounsfield Units)
 def transform_to_hu(medical_image, image):
@@ -77,39 +92,44 @@ def window_img_transf(image, win_center, win_width):
         
     return window_image_gl
 
-def getprepareimgCNN(inputimg):
-    imgscale = inputimgCNNscale
-    # Prepare input image as input in the model 
-    inputimg=cv.resize(inputimg,(imgnormsize[0]//imgscale,
-                               imgnormsize[1]//imgscale),
-                       interpolation = cv.INTER_AREA)
-      
-    # Input image normalization imnorm = im/max(im)
-    norminputimg=inputimg/np.max(inputimg)
+def GetPrepareImage(img_in):
     
-    # Adding one dimension to array
-    nn_inputimg = np.expand_dims(norminputimg,axis=[0])
+    im_array=img_in[:,:,0]
+    mask=np.zeros((np.shape(img_in)[0],np.shape(img_in)[1]))
+    mask[im_array>0]=1
+    kernel = np.ones((3, 3), np.uint8)
+    cropmask = cv.erode(mask, kernel)
+    img_out = img_in[:,:,0]*cropmask
     
-    return nn_inputimg
-    
-def getlungsegmentation(inputimg,predictedmask):
+    return img_out
 
-    predictedmaskresize = np.round( cv.resize(predictedmask[0,:,:,0],
-                                    (imgnormsize[0],imgnormsize[1]),
-                                    interpolation = cv.INTER_AREA)
-                                    )
+def GetFeatureExtraction(scaled_im_or,scaled_segmented_image):
     
-    kernel = np.ones((SEsize,SEsize), np.uint8)
-    cropmask = cv.erode(predictedmaskresize, kernel)
+    roi = np.where(scaled_segmented_image>0)
+    xcoord=roi[0]
+    ycoord=roi[1]
     
-    outputimg = inputimg[:,:,0]*cropmask
-    return outputimg
+    dist=5
+    statslist=[]
+    
+    for k in range(np.shape(xcoord)[0]):
+    
+        c=ycoord[k],xcoord[k]
+        data=(scaled_im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
+        mean_gl = np.mean(data)
+        med_gl  = np.median(data)
+        std_gl  = np.std(data)
+        kurt_gl = sp.stats.kurtosis(data)
+        skew_gl = sp.stats.skew(data)        
+        statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
 
-
-#%%
-def kmeanscluster(im_or):
+    featurematrix = np.array(statslist) 
     
-    pixel_values = np.float32(im_or.reshape((-1,1)))
+    return featurematrix
+
+def GetClusteredMask(img_in,scale):
+    
+    pixel_values = np.float32(img_in.reshape((-1,1)))
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.2)
     flags = cv.KMEANS_RANDOM_CENTERS
     k=3 # Background, Lung, Consolidation and GGO
@@ -118,37 +138,26 @@ def kmeanscluster(im_or):
     labels = labels.flatten()
     
     segmented_image_vector = centers[labels.flatten()]
-    segmented_image = segmented_image_vector.reshape(im_or.shape)
+    segmented_image = segmented_image_vector.reshape(img_in.shape)  
     
-    return segmented_image
+    scaled_im_or=cv.resize(img_in,(512//scale,512//scale), 
+            interpolation = cv.INTER_AREA)
+    
+    scaled_segmented_image=cv.resize(segmented_image,(512//scale,512//scale), 
+            interpolation = cv.INTER_AREA)
+    
+    return scaled_im_or,scaled_segmented_image
 
-def feature_extraction(im_or,roi,subsample):
-    dist=5
-    statslist=[]
-    
-    #subsample=1
-    
-    xcoord=roi[0][::subsample]
-    ycoord=roi[1][::subsample]
-    
-    # Slicing window
-    for k in range(np.shape(xcoord)[0]):
-        #print(k)
-        c=ycoord[k],xcoord[k]
-        data=(im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
-        mean_gl = np.mean(data)
-        med_gl  = np.median(data)
-        std_gl  = np.std(data)
-        kurt_gl = sp.stats.kurtosis(data)
-        skew_gl = sp.stats.skew(data)        
-        statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
+def GetPrediction(featurematrix):
+    scaler = preprocessing.StandardScaler().fit(featurematrix)
+    featurematrix_norm=scaler.transform(featurematrix)
 
-    featurematrix = np.array(statslist)    
+    predicted_label = clf_model.predict(featurematrix_norm)
+    return predicted_label
 
-    return featurematrix
-
-def predmask(im_or,roi,subsample,predicted_label,label):
+def GetPredictedMask(im_or,subsample,predicted_label,label):
     
+    roi = np.where(im_or>0)
     #subsample=1   
     predcoordy=roi[0][::subsample][predicted_label==label]
     predcoordx=roi[1][::subsample][predicted_label==label]
@@ -157,54 +166,27 @@ def predmask(im_or,roi,subsample,predicted_label,label):
     
     return predictedmask
 
-
-def lunginfectionsegmentation(im_or,clf_model):
- 
-    segmented_image=kmeanscluster(im_or)    
-    clusterlabels = np.unique(segmented_image)  
-    #print(len(clusterlabels))
+def GetLungInfSegmentation(scl_img_or,predicted_label):
     
-    if len(clusterlabels)>1:
+    subsample=1
+    lngmask=GetPredictedMask(scl_img_or,subsample,predicted_label,0)
+    ggomask=GetPredictedMask(scl_img_or,subsample,predicted_label,1)
+    conmask=GetPredictedMask(scl_img_or,subsample,predicted_label,2)
     
-        lungmask = segmented_image==clusterlabels[1]    
-        
-        if len(clusterlabels)>2:
-            lunginfmask=np.int16(segmented_image==clusterlabels[2])
-            
-            # kernel = np.ones((3,3), np.uint8)
-            # imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
-            # lunginfmask = imopen.copy()
-            
-            # Region of interest
-            roi = np.where(lunginfmask == 1)
-            
-            subsample=3
-            
-            featurematrix=feature_extraction(im_or,roi,subsample)
-            scaler = preprocessing.StandardScaler().fit(featurematrix)
-            featurematrix_norm=scaler.transform(featurematrix)
-            
-            predicted_label = clf_model.predict(featurematrix_norm)
-            
-            ggomask=predmask(im_or,roi,subsample,predicted_label,1)
-            conmask=predmask(im_or,roi,subsample,predicted_label,2)
-              
-            kernel = np.ones((subsample,subsample), np.uint8)
-            ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
-            conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
-            
-            lunginfmask = conmask_close+ggomask_close
-            lunginfmask[lunginfmask>3]=0
-        
-        else:
-           lunginfmask=segmented_image.copy()
-           lunginfmask[lunginfmask>0]=1
+    kernel = np.ones((2, 2), np.uint8)
+    lngmask = cv.morphologyEx(lngmask, cv.MORPH_OPEN, kernel)    
+    ggomask = cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)    
+    conmask = cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel) 
     
-    else:
-        lunginfmask=segmented_image.copy()
-        lunginfmask[lunginfmask>0]=1
-
-    return lunginfmask
+    lunginfmask = ggomask+conmask   
+    
+    lunginfmask[lunginfmask>3]=0
+    
+    resizedlunginfmask=cv.resize(lunginfmask,(512,512),interpolation = cv.INTER_AREA)
+    # final_mask = cv.GaussianBlur(resizedlunginfmask, (0,0), sigmaX=1, sigmaY=1, borderType = cv.BORDER_DEFAULT)
+    # final_mask = np.round(final_mask)
+    final_mask=resizedlunginfmask.copy()
+    return final_mask
 
 
 
