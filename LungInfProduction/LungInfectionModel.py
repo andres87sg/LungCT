@@ -8,16 +8,13 @@ import cv2 as cv
 import os
 import pydicom as dicom
 
-from LungInfectionUtils import dcm_size, dcm_imresize, dcm_convert, getprepareimgCNN, getlungsegmentation
-from LungInfectionUtils import transform_to_hu, window_img_transf
-from LungInfectionUtils import GetPrepareImage, GetFeatureExtraction
-from LungInfectionUtils import GetClusteredMask, GetPrediction, GetPredictedMask,GetLungInfSegmentation
-
+from LungInfectionUtils import dcm_convert,getlungsegmentation,getprepareimgCNN
+from LungInfectionUtils import lunginfectionsegmentation
+from LungInfectionUtils import dcm_size,dcm_imresize
 from LungInfectionConstantManager import WinLength,WinWidth
 from AbstractProducts import load_mdl_lungsegmentation,load_mdl_infsegmentation
 
 #%%
-
 class LungInfectionModel():
 
     def __init__(self,mdl1,mdl2):
@@ -37,28 +34,30 @@ class LungInfectionModel():
         
         inputCNNimg=getprepareimgCNN(norm_img)
         predictedmask = self.mdl1.predict(inputCNNimg)
-    
         lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
-        aa = GetPrepareImage(lungsegmentationimg)
+        pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg,
+                                                 self.mdl2)
         
         
-        scl_img_or,scl_segm_img=GetClusteredMask(aa,scale=2)
-        featurematrix = GetFeatureExtraction(scl_img_or,scl_segm_img)
+        pred_maskmulti_res=np.round(dcm_imresize(pred_maskmulti,
+                                                  targetsize[0],
+                                                  targetsize[1]))
         
-        if featurematrix.size!=0:
+        lngmask=np.round(dcm_imresize(predictedmask[0,:,:,0],
+                                          targetsize[0],
+                                          targetsize[1]))
         
-            predicted_label = GetPrediction(featurematrix,self.mdl2)
-            pred_maskmulti = GetLungInfSegmentation(scl_img_or,predicted_label)
-            
-            pred_maskmulti_res=np.round(dcm_imresize(pred_maskmulti,
-                                                      targetsize[0],
-                                                      targetsize[1]))
-        else:
-            pred_maskmulti_res=np.zeros((targetsize[0],targetsize[1]))
-            
-            
+        ggomask=np.int16(pred_maskmulti_res==2)
+        conmask=np.int16(pred_maskmulti_res==3)
         
-        return lungsegmentationimg
+        kernel = np.ones((3,3), np.uint8)
+        
+        ggomask2=cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)
+        conmask2=cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel)
+        
+        pred_maskmulti_res=lngmask+ggomask2+2*conmask2
+                
+        return pred_maskmulti_res
 
     def run_evaluation(self):
         pass
@@ -68,26 +67,25 @@ class LungInfectionModel():
 
 #%% Prueba 
 
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/AF935CEE/'
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/22474FA3/'
 listfiles = os.listdir(origpath)
 
 mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
 
 from time import time
-start_time = time()
+start_time = time() 
 
-for i in range(20,21):
+for i in range(56,57):
     dcmfilename = listfiles[i]
     
     dcm_img = dicom.dcmread(origpath+dcmfilename)
     
     [norm_img, ins_num,dcm_originalsize]=mdl.run_preprocessing(dcm_img)
-    pred_mask2=mdl.run_prediction(norm_img,dcm_originalsize)
-    
-    plt.figure()
-    plt.title('Image No '+ str(i))
-    plt.imshow(pred_mask,cmap='gray')
-    plt.axis('off')
+    pred_mask=mdl.run_prediction(norm_img,dcm_originalsize)
+    # plt.figure()
+    # plt.imshow(pred_mask,cmap='gray')
+    # plt.axis('off')
+    print(np.unique(pred_mask))
     
 elapsed_time = time() - start_time 
 print(elapsed_time)
