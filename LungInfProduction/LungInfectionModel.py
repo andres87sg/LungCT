@@ -13,6 +13,7 @@ from LungInfectionUtils import lunginfectionsegmentation
 from LungInfectionUtils import dcm_size,dcm_imresize
 from LungInfectionConstantManager import WinLength,WinWidth
 from AbstractProducts import load_mdl_lungsegmentation,load_mdl_infsegmentation
+from seg_utils import create_segmentations
 
 #%%
 class LungInfectionModel():
@@ -29,7 +30,8 @@ class LungInfectionModel():
         dcm_originalsize = dcm_size(dcm_img)
         
         return norm_img, ins_num, dcm_originalsize
-    
+
+        
     def run_prediction(self,norm_img,targetsize):
         
         inputCNNimg=getprepareimgCNN(norm_img)
@@ -50,7 +52,7 @@ class LungInfectionModel():
         ggomask=np.int16(pred_maskmulti_res==2)
         conmask=np.int16(pred_maskmulti_res==3)
         
-        kernel = np.ones((3,3), np.uint8)
+        kernel = np.ones((10,10), np.uint8)
         
         ggomask2=cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)
         conmask2=cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel)
@@ -66,26 +68,45 @@ class LungInfectionModel():
         pass
 
 #%% Prueba 
-
-origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/22474FA3/'
+origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient/'
+#origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 listfiles = os.listdir(origpath)
 
 mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
 
+segmentation=[]
+
 from time import time
 start_time = time() 
 
-for i in range(56,57):
+for i in range(len(listfiles)):
     dcmfilename = listfiles[i]
     
     dcm_img = dicom.dcmread(origpath+dcmfilename)
     
     [norm_img, ins_num,dcm_originalsize]=mdl.run_preprocessing(dcm_img)
     pred_mask=mdl.run_prediction(norm_img,dcm_originalsize)
-    # plt.figure()
-    # plt.imshow(pred_mask,cmap='gray')
-    # plt.axis('off')
-    print(np.unique(pred_mask))
+    #plt.figure()
+    #plt.imshow(pred_mask,cmap='gray')
+    #plt.axis('off')
+    
+    
+    segmentation.append(pred_mask)
+
+segmentation=np.array(segmentation,dtype=np.uint8)
+
+
+#%%
+def extract_mask(mask, value):
+    array_mask = mask.copy()
+    array_mask = np.array(array_mask == value, dtype=np.uint8)
+    return array_mask
+
+lung_mask = extract_mask(segmentation, 1)
+ground_glass_mask = extract_mask(segmentation, 2)
+consolidation_mask = extract_mask(segmentation, 3)
+
+#%%
     
 elapsed_time = time() - start_time 
 print(elapsed_time)
@@ -93,3 +114,16 @@ print(elapsed_time)
 minutes=np.round(np.floor(elapsed_time/60),0)
 seconds=np.round((elapsed_time/60-minutes)*60,0)
 print(str(minutes)+' minutes '+ str(seconds) + ' seconds ')
+
+
+#%%
+metadata = "meta.json"
+
+dest_folder='C:/Users/Andres/Desktop/SementacionesDicom/'
+
+#%%
+
+create_segmentations([lung_mask,ground_glass_mask,consolidation_mask],metadata,origpath,dest_folder)
+
+
+
