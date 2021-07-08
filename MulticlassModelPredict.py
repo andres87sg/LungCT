@@ -27,8 +27,8 @@ from timeit import timeit
     
 #%% Model
 
-scale = 4
-filters= 64
+scale = 1
+filters= 32
 nclasses= 4
     
 def conv_block(tensor, nfilters, size=3, padding='same', initializer="he_normal"):
@@ -88,7 +88,7 @@ model.summary()
 # Loading model weights
 
 #model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped.h5')
-model.load_weights('C:/Users/Andres/Desktop/LungInf_SF4_Filt64.h5')
+model.load_weights('C:/Users/Andres/Desktop/LungInf_SF1_Filt32_03072021.h5')
 
 #%%
 
