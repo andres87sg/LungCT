@@ -30,8 +30,8 @@ from timeit import timeit
     
 #%% Model
 
-scale = 2
-filters= 64
+scale = 1
+filters= 32
 
 nclasses= 4
     
@@ -91,10 +91,10 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 # Loading model weights
 
-#model.load_weights('C:/Users/Andres/Desktop/CTClassif/ExpLungInf1_cropped3.h5')
+model.load_weights('C:/Users/Andres/Desktop/LungInf_SF1_Filt32_03072021.h5')
 #model.load_weights('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_26052021.h5')
 
-model.save('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_Python_25052021.h5')
+#model.save('C:/Users/Andres/Desktop/LungInf_SF2_Filt64_Python_25052021.h5')
 #%%
 
 def imoverlay(img,predimg,coloredge):
@@ -135,13 +135,13 @@ colormat=np.zeros([512,512])
 
 grtr_mask=[] #Groundtruth mask
 classes = 4
-scale = 2
+scale = 1
 
 jaccard_df=[]
 
 
 
-for i in range(24,25):
+for i in range(24,26):
 #for i in range(len(listfiles)):
     
     # List of files
