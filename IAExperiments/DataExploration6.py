@@ -47,6 +47,9 @@ statslist=[]
 i=10
 #for i in range(len(listfiles)):
 for i in tqdm.tqdm(range(len(listfiles))):
+
+#for i in range(30,31):
+
     
     im_name = listfiles[i] # Gray level
     im_namemask = listfilesmask[i] # Segmentation mask
@@ -84,7 +87,7 @@ for i in tqdm.tqdm(range(len(listfiles))):
             [mode_gl,b]= sp.stats.mode(data_class[0])
             
             class_gl= data_class[1]
-            statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl,mode_gl,
+            statist = [class_gl,mean_gl,med_gl,std_gl,kurt_gl,skew_gl,mode_gl[0],
                        entr_gl]
             statslist.append(statist)
  
@@ -110,13 +113,13 @@ true_labels=df['class'].values
 
 #%%
 x1=dfclass_one.iloc[:,2]
-y1=dfclass_one.iloc[:,6]
+y1=dfclass_one.iloc[:,7]
 
 x2=dfclass_two.iloc[:,2]
-y2=dfclass_two.iloc[:,6]
+y2=dfclass_two.iloc[:,7]
 
 x3=dfclass_three.iloc[:,2]
-y3=dfclass_three.iloc[:,6]
+y3=dfclass_three.iloc[:,7]
 
 
 plt.scatter(x1,y1,marker='.')

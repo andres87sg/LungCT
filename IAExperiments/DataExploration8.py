@@ -36,8 +36,6 @@ import tqdm
 import scipy as sp
 #%%
 
-
-
 def getfeaturesdataframe(path,pathmask):
 
     listfiles = os.listdir(path)
@@ -95,10 +93,47 @@ def getfeaturesdataframe(path,pathmask):
     return df
     #df.head()
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
-df = getfeaturesdataframe(path,pathmask):
+#%%
+
+def getfeaturematrix(df):
+
+    is_one=df.loc[:,'class']==1
+    dfclass_one=df.loc[is_one]
+    
+    is_two=df.loc[:,'class']==2
+    dfclass_two=df.loc[is_two]
+    
+    is_three=df.loc[:,'class']==3
+    dfclass_three=df.loc[is_three]
+    
+    class_one=dfclass_one.iloc[:,1:6].values
+    class_two=dfclass_two.iloc[:,1:6].values
+    class_three=dfclass_three.iloc[:,1:6].values
+    
+    label_one = dfclass_one.iloc[:,0].values
+    label_two = dfclass_two.iloc[:,0].values
+    label_three = dfclass_three.iloc[:,0].values
+    
+    
+    features_matrix=np.concatenate((class_one,
+                                    class_two,
+                                    class_three
+                                    ),axis=0)
+    labels = np.concatenate((label_one,label_two,label_three),axis=0)
+    
+    return features_matrix,labels
+
+
+#%%
+
+
+# path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
+# pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
+
+# df = getfeaturesdataframe(path,pathmask)
+
+features_matrix,labels = getfeaturematrix(df)
 
 #%%
 
@@ -137,30 +172,6 @@ plt.ylabel('skew')
 X=df.iloc[:,1:6].values
 
 #%%
-
-is_one=df.loc[:,'class']==1
-dfclass_one=df.loc[is_one]
-
-is_two=df.loc[:,'class']==2
-dfclass_two=df.loc[is_two]
-
-is_three=df.loc[:,'class']==3
-dfclass_three=df.loc[is_three]
-
-class_one=dfclass_one.iloc[:,1:6].values
-class_two=dfclass_two.iloc[:,1:6].values
-class_three=dfclass_three.iloc[:,1:6].values
-
-label_one = dfclass_one.iloc[:,0].values
-label_two = dfclass_two.iloc[:,0].values
-label_three = dfclass_three.iloc[:,0].values
-
-
-features_matrix=np.concatenate((class_one,
-                                class_two,
-                                class_three
-                                ),axis=0)
-labels = np.concatenate((label_one,label_two,label_three),axis=0)
 
 
 
