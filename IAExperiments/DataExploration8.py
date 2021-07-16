@@ -17,7 +17,12 @@ import math
 import albumentations as A
 import matplotlib.pyplot as plt
 import numpy as np
+
+
 import os
+from os.path import isfile, join
+
+
 import cv2
 import PIL
 import pandas as pd
@@ -54,33 +59,23 @@ def getfeaturesdataframe(path,pathmask):
     listfilesmask = os.listdir(pathmask)
     statslist=[]
     
-    for i in range(30,31):
-    #for i in tqdm.tqdm(range(len(listfiles))):
+    for i in tqdm.tqdm(range(len(listfiles))):
         
         im_name = listfiles[i] # Gray level
         im_namemask = listfilesmask[i] # Segmentation mask
         
         # Graylevel image (array)
-        im_or=cv2.imread(path+im_name)
+        im_or=cv2.imread(join(path,im_name))
         im_array=im_or[:,:,0]
-        grtr_mask=cv2.imread(pathmask+im_namemask)
+        grtr_mask=cv2.imread(join(pathmask,im_namemask))
         
-        # mask=np.int16(grtr_mask[:,:,0]>0)
-        
-        # kernel = np.ones((10, 10), np.uint8)
-        # cropmask = cv2.erode(mask, kernel)
-        
-        
-        # im_or=im_or[:,:,0]*cropmask
-        # grtr_mask = grtr_mask[:,:,0]*cropmask
-        
-        data_class0=[im_or[grtr_mask==1],1]
-        data_class1=[im_or[grtr_mask==2],2]
-        data_class2=[im_or[grtr_mask==3],3]
+       
+        data_class0=[im_or[grtr_mask==85],1]
+        data_class1=[im_or[grtr_mask==170],2]
+        data_class2=[im_or[grtr_mask==255],3]
         
         for data_class in ([data_class0,data_class1,data_class2]):
-            
-            
+
             # Si hay algo en el vector data_class
             if len(data_class[0]) !=0:
                 
@@ -113,7 +108,7 @@ def getfeaturematrix(df):
     is_two=df.loc[:,'class']==2
     dfclass_two=df.loc[is_two]
     
-    is_three=df.loc[:,'class']==3
+    is_three=df.loc[:,'class']==2
     dfclass_three=df.loc[is_three]
     
     class_one=dfclass_one.iloc[:,1:7].values
@@ -160,7 +155,6 @@ df_val = getfeaturesdataframe(path_val,pathmask_val)
 featurematrix_val,labels_val = getfeaturematrix(df_val)
 featurematrixnorm_val = getfeaturematrixnormalization(featurematrix_val)
 
-#%% test set
 path_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
 pathmask_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 
@@ -178,27 +172,23 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningR
 
 model = Sequential()
 model.add(Dense(16, input_dim=6, activation='relu'))
-model.add(Dense(2048,activation='relu'))
-model.add(Dense(2048,activation='relu'))
-model.add(Dense(2048,activation='relu'))
+model.add(Dense(512,activation='relu'))
 model.add(Dense(16,activation='relu'))
 
-
-model.add(Dense(3, activation='softmax'))
-
+model.add(Dense(2, activation='softmax'))
 
 #%%
 
 def step_decay(epoch):
-	initial_lrate = 1e-3
+	initial_lrate = 1e-2
 	drop = 0.1
-	epochs_drop = 5
+	epochs_drop = 10
 	lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
 	return lrate
 
 checkpoint_path = 'C:/Users/Andres/Desktop/eso.h5'
 lr = LearningRateScheduler(step_decay)
-es = EarlyStopping(patience=20,mode='min', verbose=1)
+es = EarlyStopping(patience=50,mode='min', verbose=1)
 mc = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1 , save_best_only=True, mode='min')
 
 
@@ -252,10 +242,62 @@ for ind in range(len(predict)):
 
 ##predicted_label=np.round(predict[:,1]*)
 true_label=labels_test
-#%%
+
 print("Classification report")
 print(confusion_matrix(true_label, predicted_label))
 print(classification_report(true_label, predicted_label, digits=3))
+
+
+#%%
+
+path_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
+pathmask_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
+
+i=10
+
+listfiles = os.listdir(path)
+listfilesmask = os.listdir(pathmask)
+statslist=[]
+
+im_name = listfiles[i] # Gray level
+im_namemask = listfilesmask[i] # Segmentation mask
+
+im_or=cv2.imread(join(path,im_name))
+im_array=im_or[:,:,0]
+grtr_mask=cv2.imread(join(pathmask,im_namemask))
+
+
+
+#%%
+
+pp1=np.zeros((512,512,3))
+pp1[:,:,0]=im_or
+pp1[:,:,1]=im_or
+pp1[:,:,2]=im_or
+
+pixel_values = np.float32(im_or.reshape((-1,1)))
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
+
+flags = cv.KMEANS_RANDOM_CENTERS
+
+k=4
+compactness,labels,centers = cv.kmeans(pixel_values,k,None,criteria,10,flags)
+
+centers = np.uint8(centers)
+labels = labels.flatten()
+
+segmented_image = centers[labels.flatten()]
+#%%
+
+
+segmented_image = segmented_image.reshape(im_or.shape)
+# show the image
+plt.imshow(segmented_image,cmap='gray')
+plt.show()
+
+
+
+
 
 #predicted_label=np.int32(predicted_label)
 
