@@ -253,7 +253,7 @@ print(classification_report(true_label, predicted_label, digits=3))
 path_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
 pathmask_test = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask/Mask/'
 
-i=10
+i=15
 
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
@@ -269,25 +269,30 @@ grtr_mask=cv2.imread(join(pathmask,im_namemask))
 
 
 #%%
+import matplotlib.pyplot as plt
+from scipy import ndimage, misc
+result = ndimage.median_filter(im_or, size=10)
 
-pp1=np.zeros((512,512,3))
-pp1[:,:,0]=im_or
-pp1[:,:,1]=im_or
-pp1[:,:,2]=im_or
+#%%
 
-pixel_values = np.float32(im_or.reshape((-1,1)))
+import cv2 as cv
+# pp1=np.zeros((512,512,3))
+# pp1[:,:,0]=im_or
+# pp1[:,:,1]=im_or
+# pp1[:,:,2]=im_or
+
+pixel_values = np.float32(result2.reshape((-1,1)))
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
 
 flags = cv.KMEANS_RANDOM_CENTERS
 
-k=4
+k=3
 compactness,labels,centers = cv.kmeans(pixel_values,k,None,criteria,10,flags)
 
 centers = np.uint8(centers)
 labels = labels.flatten()
 
 segmented_image = centers[labels.flatten()]
-#%%
 
 
 segmented_image = segmented_image.reshape(im_or.shape)
@@ -295,9 +300,25 @@ segmented_image = segmented_image.reshape(im_or.shape)
 plt.imshow(segmented_image,cmap='gray')
 plt.show()
 
+#%%
+
+scale1 = cv2.resize(im_or,(512//2,512//2), 
+                       interpolation = cv2.INTER_AREA)
+
+scale2 = cv2.resize(im_or,(512//4,512//4), 
+                       interpolation = cv2.INTER_AREA)
+
+scale3 = cv2.resize(im_or,(512//8,512//8), 
+                       interpolation = cv2.INTER_AREA)
+
+scale4 = cv2.resize(im_or,(512//16,512//16), 
+                       interpolation = cv2.INTER_AREA)
 
 
+result = ndimage.median_filter(scale2, size=3)
 
+result2 = cv2.resize(result,(512,512), 
+                       interpolation = cv2.INTER_AREA)
 
 #predicted_label=np.int32(predicted_label)
 
