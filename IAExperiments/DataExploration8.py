@@ -52,7 +52,7 @@ from sklearn.model_selection import KFold
 
 
 #%%
-
+a=0
 def getfeaturesdataframe(path,pathmask):
 
     listfiles = os.listdir(path)
