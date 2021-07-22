@@ -36,19 +36,25 @@ import tqdm
 import scipy as sp
 #%%
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
+# path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
+# pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
+
+path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'
+
+
+
 
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
 
 statslist=[]
 
-i=10
+# i=10
 #for i in range(len(listfiles)):
 for i in tqdm.tqdm(range(len(listfiles))):
 
-#for i in range(30,31):
+#for i in range(1,31):
 
     
     im_name = listfiles[i] # Gray level
@@ -68,8 +74,8 @@ for i in tqdm.tqdm(range(len(listfiles))):
     im_or=im_or[:,:,0]*cropmask
     grtr_mask = grtr_mask[:,:,0]*cropmask
     
-    data_class0=[im_or[grtr_mask==63],0]
-    data_class1=[im_or[grtr_mask==127],1]
+    data_class0=[im_or[grtr_mask==85],0]
+    data_class1=[im_or[grtr_mask==170],1]
     data_class2=[im_or[grtr_mask==255],2]
     
     for data_class in ([data_class0,data_class1,data_class2]):
@@ -113,13 +119,13 @@ true_labels=df['class'].values
 
 #%%
 x1=dfclass_one.iloc[:,2]
-y1=dfclass_one.iloc[:,7]
+y1=dfclass_one.iloc[:,4]
 
 x2=dfclass_two.iloc[:,2]
-y2=dfclass_two.iloc[:,7]
+y2=dfclass_two.iloc[:,4]
 
 x3=dfclass_three.iloc[:,2]
-y3=dfclass_three.iloc[:,7]
+y3=dfclass_three.iloc[:,4]
 
 
 plt.scatter(x1,y1,marker='.')
@@ -128,6 +134,12 @@ plt.scatter(x3,y3,marker='.')
 plt.title('median vs std')
 plt.xlabel('median')
 plt.ylabel('skew')
+
+#%%
+from sklearn.decomposition import PCA
+X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+pca = PCA(n_components=2)
+nn=pca.fit(X)
 
 #%%
 
@@ -285,13 +297,29 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
 
 flags = cv.KMEANS_RANDOM_CENTERS
 
-k=4
+k=3
 compactness,labels,centers = cv.kmeans(pixel_values,k,None,criteria,10,flags)
 
 centers = np.uint8(centers)
 labels = labels.flatten()
 
 segmented_image = centers[labels.flatten()]
+
+X=pixel_values.copy()
+
+Nc = range(1, 4)
+kmeans = [KMeans(n_clusters=i) for i in Nc]
+kmeans
+score = [kmeans[i].fit(X).score(X) for i in range(len(kmeans))]
+score
+plt.plot(Nc,score)
+plt.xlabel('Number of Clusters')
+plt.ylabel('Score')
+plt.title('Elbow Curve')
+plt.show()
+
+
+
 #%%
 
 
@@ -317,7 +345,7 @@ plt.show()
 #%%
 
 
-i=20
+i=1
 
 im_name = listfiles[i] # Gray level
 im_namemask = listfilesmask[i] # Segmentation mask

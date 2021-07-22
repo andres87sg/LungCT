@@ -24,7 +24,7 @@ import cv2
     
 #%% Model
 
-scale = 4
+scale = 2
 filters= 32
 nclasses= 2
     
@@ -84,7 +84,8 @@ model = Unet(512//scale, 512//scale, nclasses, filters)
 
 # Loading model weights
 
-model.load_weights('C:/Users/Andres/Desktop/CTClassif/Experimento4_new.h5')
+#model.load_weights('C:/Users/Andres/Desktop/CTClassifLungSegmModel.h5')
+model.load_weights('C:/Users/Andres/Desktop/LungSegmModel.h5')
 
 
 #%%
@@ -106,7 +107,6 @@ def imoverlay(img,predimg,coloredge):
     
     return overlayimg
 
-#%%
 
 def getsmoothlungmask(pred_mask):
     
@@ -164,8 +164,8 @@ destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'
 listfiles = os.listdir(path)
 listfiles_mask = os.listdir(path_mask)
 
-#for i in range(len(listfiles)):
-for i in range(320,321):
+for i in range(len(listfiles)):
+#for i in range(25,26):
     
     # List of files
     im_name = listfiles[i]
@@ -231,16 +231,18 @@ for i in range(320,321):
         con_label=2
         con_mask=np.int16(imtrue_mask[:,:,0]==con_label)
         con_smooth_mask=getsmoothmask(con_mask)
-        pred_mask[con_smooth_mask==1]=3
+        pred_mask[con_smooth_mask==1]=2
     except:
         print("Something else went wrong")
     
-    
+    # Bkg=0, Lung=1, Cons=2,
+    # Ojo, si tengo clases Bkg=0, Lung=1, cons&ggo=2 entonces num classes=2
+    num_classes=2
     
     finalmask = pred_mask*lung_mask
     ROI_image = im_or[:,:,0]*(finalmask>0)
     
-    norm_mask=np.uint16(((finalmask)/3)*255)
+    norm_mask=np.uint16(((finalmask)/num_classes)*255)
     
     zz=np.zeros((512,512,3))
     

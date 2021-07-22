@@ -18,10 +18,10 @@ from os.path import isfile, join
 import tqdm
 
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/Validation/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Validation/Mask/Mask/'
+path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
-destpath = 'C:/Users/Andres/Desktop/CovidImages2/Validation/Mask2/'
+destpath = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask2/'
 
 listfiles = os.listdir(path)
 listfilesmask = os.listdir(pathmask)
@@ -43,9 +43,33 @@ for i in tqdm.tqdm(range(len(listfiles))):
     
     grtr_mask2=np.int16((grtr_mask/maxgraylevel)*num_classes)
     
-    grtr_mask2[grtr_mask2>classlabel_lung]=maxgraylevel
+    grtr_mask2[grtr_mask2>1]=255
+    grtr_mask2[grtr_mask2==1]=127
+    grtr_mask2[grtr_mask2<classlabel_lung]=0
     
     cv.imwrite(destpath+im_name, grtr_mask2)
     
+#%%
 
+path = 'C:/Users/Andres/Desktop/CovidImages2/Testing/CT2/CT/'
+pathmask = 'C:/Users/Andres/Desktop/LungInfDataset/Testing/Mask2/Mask/'
 
+#destpath = 'C:/Users/Andres/Desktop/CovidImages2/Testing/Mask2/'
+
+listfiles = os.listdir(path)
+listfilesmask = os.listdir(pathmask)
+statslist=[]
+
+num_classes = 3
+maxgraylevel = 255
+classlabel_lung = 1
+
+for i in tqdm.tqdm(range(len(listfiles))):
+    im_name = listfiles[i] # Gray level
+    im_namemask = listfilesmask[i] # Segmentation mask
+    im_or=cv.imread(join(path,im_name))
+    im_array=im_or[:,:,0]
+    grtr_mask=cv.imread(join(pathmask,im_namemask))
+    
+    print(np.unique(grtr_mask))
+    

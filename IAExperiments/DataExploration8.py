@@ -138,9 +138,11 @@ def getfeaturematrixnormalization(featurematrix):
 
 #%%
 
+path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
+# path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
+# pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
 path_val = 'C:/Users/Andres/Desktop/CovidImages2/Validation/CT2/CT/'
 pathmask_val = 'C:/Users/Andres/Desktop/CovidImages2/Validation/Mask/Mask/'
@@ -172,6 +174,8 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningR
 
 model = Sequential()
 model.add(Dense(16, input_dim=6, activation='relu'))
+model.add(Dense(512,activation='relu'))
+model.add(Dense(512,activation='relu'))
 model.add(Dense(512,activation='relu'))
 model.add(Dense(16,activation='relu'))
 
