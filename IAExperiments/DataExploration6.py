@@ -40,7 +40,7 @@ import scipy as sp
 # pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
 path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'
+pathmask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg3/'
 
 
 
@@ -64,7 +64,7 @@ for i in tqdm.tqdm(range(len(listfiles))):
     im_or=cv2.imread(path+im_name)
     im_array=im_or[:,:,0]
     grtr_mask=cv2.imread(pathmask+im_namemask)
-    
+    #print(np.unique(grtr_mask))
     mask=np.int16(grtr_mask[:,:,0]>0)
     
     kernel = np.ones((10, 10), np.uint8)
@@ -118,14 +118,14 @@ dfclass_three=df.loc[is_three]
 true_labels=df['class'].values
 
 #%%
-x1=dfclass_one.iloc[:,2]
-y1=dfclass_one.iloc[:,4]
+x1=dfclass_one.iloc[:,1]
+y1=dfclass_one.iloc[:,3]
 
-x2=dfclass_two.iloc[:,2]
-y2=dfclass_two.iloc[:,4]
+x2=dfclass_two.iloc[:,1]
+y2=dfclass_two.iloc[:,3]
 
-x3=dfclass_three.iloc[:,2]
-y3=dfclass_three.iloc[:,4]
+x3=dfclass_three.iloc[:,1]
+y3=dfclass_three.iloc[:,3]
 
 
 plt.scatter(x1,y1,marker='.')
@@ -133,7 +133,7 @@ plt.scatter(x2,y2,marker='.')
 plt.scatter(x3,y3,marker='.')
 plt.title('median vs std')
 plt.xlabel('median')
-plt.ylabel('skew')
+plt.ylabel('std')
 
 #%%
 from sklearn.decomposition import PCA

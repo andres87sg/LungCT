@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import cv2
+import tqdm
 
     
 #%% Model
@@ -74,19 +75,14 @@ def Unet(img_height, img_width, nclasses=2, filters=64):
     model = Model(inputs=input_layer, outputs=output_layer, name='Unet')
     return model
 
-
-
 model = Unet(512//scale, 512//scale, nclasses, filters)
 
-#model.summary()
-
-#%%
 
 # Loading model weights
 
 #model.load_weights('C:/Users/Andres/Desktop/CTClassifLungSegmModel.h5')
 model.load_weights('C:/Users/Andres/Desktop/LungSegmModel.h5')
-
+#tf.keras.models.load_model('C:/Users/Andres/Desktop/CTClassif/lng_seg_mdl.h5')
 
 #%%
 
@@ -112,13 +108,6 @@ def getsmoothlungmask(pred_mask):
     
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
     pred_mask_kk = cv2.morphologyEx(pred_mask, cv2.MORPH_ERODE, kernel)
-    #MASK = cv2.GaussianBlur(pred_mask_kk, (5,5), 11)
-    #MASK2 =np.uint16(np.round(MASK>=0.5))
-    
-    #plt.imshow(MASK2*im_array[:,:,0])
-    
-    #pred_mask=np.uint16(np.round(pred_mask>=0.5))
-    
     
     pred_mask2 = cv2.resize(pred_mask_kk,(512,512), 
                        interpolation = cv2.INTER_AREA)
@@ -134,64 +123,25 @@ def getsmoothlungmask(pred_mask):
 def getsmoothmask(mask):
     
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-    maskclose = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    MaskClose = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     
-    maskout = cv2.GaussianBlur(maskclose, (5,5), 3)
+    MaskOut = cv2.GaussianBlur(MaskClose, (5,5), 3)
     
-    maskout=np.int16(maskout>=0.5)
+    MaskOut=np.int16(MaskOut>=0.5)
     
-    return maskout
+    return MaskOut
 
-
-#%% Visualizacion de resultados (No es necesario correr esta sección)
-
-#C:/Users/Andres/Desktop/CovidImages2/Training/CT/CT/
-
-# path = 'C:/Users/Andres/Desktop/CovidImages2/CT/'
-# path_mask = 'C:/Users/Andres/Desktop/CovidImages2/Mask/'
-
-# destpath = 'C:/Users/Andres/Desktop/CovidImages2/CT2/'
-# destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/Mask2/'
-
-path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg/'
-path_mask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg/'
-
-destpath = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
-destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'
-
-
-
-listfiles = os.listdir(path)
-listfiles_mask = os.listdir(path_mask)
-
-for i in range(len(listfiles)):
-#for i in range(25,26):
+def getmulticlassmask(im_or,imtrue_mask,num_classes,lng_label,ggo_label,con_label):
     
-    # List of files
-    im_name = listfiles[i]
-    
-    filename = im_name[:-4]
-    
-    im_name_mask = listfiles_mask[i]
-    
-    # Graylevel image (array)
-    im_or=cv2.imread(path+im_name)
     im_array=im_or
     im_or=cv2.resize(im_or,(512,512), 
                         interpolation = cv2.INTER_AREA)
-    
-    
-    imtrue_mask=cv2.imread(path_mask+im_name_mask)
     
     # multiplicando por el la cantidad de clases 0: bkg 1:ggo 2:con
     imtrue_mask=np.int16((imtrue_mask/255)*2)
     
     imtrue_mask=cv2.resize(imtrue_mask,(512,512), 
                         interpolation = cv2.INTER_AREA)
-    
-    #imtrue_mask=cv2.imread(path_mask+im_name_mask)
-
-    #scale = 4
     
     # Image resize
     im_array=cv2.resize(im_array,(512//scale,512//scale), 
@@ -205,146 +155,95 @@ for i in range(len(listfiles)):
     
     # Generate image prediction
     pred_mask = model.predict(img_array)
-    
-    
+        
     # Image mask as (NxMx1) array
     pred_mask = pred_mask[0,:,:,0]
-    
-    # pred_mask=cv2.resize(pred_mask,(512,512), 
-    #                     interpolation = cv2.INTER_AREA)
     
     pred_mask = getsmoothlungmask(pred_mask)
     lung_mask = pred_mask.copy()
     
     
     try:
-        #ggo_label=np.unique(imtrue_mask[:,:,0])[1]
-        ggo_label=1
-        ggo_mask=np.int16(imtrue_mask[:,:,0]==ggo_label)
+        ggo=1
+        ggo_mask=np.int16(imtrue_mask[:,:,0]==ggo)
         ggo_smooth_mask=getsmoothmask(ggo_mask)
-        pred_mask[ggo_smooth_mask==1]=2
+        pred_mask[ggo_smooth_mask==1]=ggo_label
     except:
         print("Something else went wrong")
 
     try:
-        #con_label=np.unique(imtrue_mask[:,:,0])[2]
-        con_label=2
-        con_mask=np.int16(imtrue_mask[:,:,0]==con_label)
+        con=2
+        con_mask=np.int16(imtrue_mask[:,:,0]==con)
         con_smooth_mask=getsmoothmask(con_mask)
-        pred_mask[con_smooth_mask==1]=2
+        pred_mask[con_smooth_mask==1]=con_label # Usar 2 si fusiono cons y ggo
     except:
         print("Something else went wrong")
     
     # Bkg=0, Lung=1, Cons=2,
-    # Ojo, si tengo clases Bkg=0, Lung=1, cons&ggo=2 entonces num classes=2
-    num_classes=2
+    # Ojo, si tengo clases Bkg=0, Lung=1, fusion cons&ggo=2 entonces num classes=2
+    #num_classes=3
     
     finalmask = pred_mask*lung_mask
     ROI_image = im_or[:,:,0]*(finalmask>0)
     
     norm_mask=np.uint16(((finalmask)/num_classes)*255)
     
-    zz=np.zeros((512,512,3))
+    MulticlassMask=np.zeros((512,512,3))
     
     for i in range(3):
-        zz[:,:,i]=norm_mask
-    
-    # norm_mask=cv2.normalize(finalmask, None, 
-    #                alpha = 0, 
-    #                beta = 255, 
-    #                norm_type = cv2.NORM_MINMAX, 
-    #                dtype = cv2.CV_32F)
-    
-    cv2.imwrite(destpath+filename+'.png', ROI_image)
-    cv2.imwrite(destpath_mask+filename+'_mask'+'.png', zz)
-    
-    
-#%%
-
-# imx=cv2.imread('C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg2/'+filename+'_mask'+'.png')
-
-
-#%%
-    
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-    # pred_mask_kk = cv2.morphologyEx(zzz1, cv2.MORPH_CLOSE, kernel)
-    
-    # MASKX = cv2.GaussianBlur(pred_mask_kk, (15,15), 11)
-    
-    # mask=np.int16(MASKX>=0.5)
-    # MASK = cv2.GaussianBlur(pred_mask_kk, (5,5), 11)
-    # MASK2 =np.uint16(np.round(MASK>=0.5))
-    
-    # plt.imshow(MASK2*im_array[:,:,0])
+        MulticlassMask[:,:,i]=norm_mask
         
-    # pred_mask=np.uint16(np.round(pred_mask>=0.5))
-    
-    
-    # pred_mask2 = cv2.resize(MASK,(512,512), 
-    #                        interpolation = cv2.INTER_AREA)
-    
-    # pred_mask3 = np.uint16(pred_mask2>=0.5)
-    
-    # MASK3 = cv2.GaussianBlur(pred_mask3, (15,15), 11)
+    return ROI_image,MulticlassMask
 
-    #imtrue_mask = cv2.resize(imtrue_mask,(512,512), 
-    #                        interpolation = cv2.INTER_AREA)
     
-    # imtrue_mask = cv2.resize(imtrue_mask,(512,512), 
-    #                        interpolation = cv2.INTER_AREA)
+
+#%% Visualizacion de resultados (No es necesario correr esta sección)
+
+#C:/Users/Andres/Desktop/CovidImages2/Training/CT/CT/
+
+path = 'C:/Users/Andres/Desktop/CovidImages2/CT/'
+path_mask = 'C:/Users/Andres/Desktop/CovidImages2/Mask/'
+
+destpath = 'C:/Users/Andres/Desktop/CovidImages2/CT2/'
+destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/Mask3/'
+
+# path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg/'
+# path_mask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg/'
+
+# destpath = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
+# destpath_mask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg3/'
+
+scale=2
+
+listfiles = os.listdir(path)
+listfiles_mask = os.listdir(path_mask)
+
+for i in tqdm.tqdm(range(len(listfiles))):
+#for i in range(10,11):
+    
+    # List of files
+    im_name = listfiles[i]
+    
+    filename = im_name[:-4]
+    
+    im_name_mask = listfiles_mask[i]
+    
+    # Graylevel image (array)
+    im_or=cv2.imread(path+im_name)
+    
+    imtrue_mask=cv2.imread(path_mask+im_name_mask)
+    
+
+    ROIimg, Mask = getmulticlassmask(im_or,
+                                     imtrue_mask,
+                                     num_classes=3,
+                                     lng_label=1,
+                                     ggo_label=2,
+                                     con_label=3)
+    
+
     
     
-    ###########
+    cv2.imwrite(destpath+filename+'.png', ROIimg)
+    cv2.imwrite(destpath_mask+filename+'_mask'+'.png', Mask)
     
-    # imtrue_mask=np.round((imtrue_mask/255*4))
-    
-    # roimask=pred_mask*imtrue_mask[:,:,0]
-    
-    # newmask= roimask + pred_mask
-    
-    # ls=np.zeros([512,512])
-    
-    # ls[newmask==1]=np.round(255/4*1)-1
-    # ls[newmask==3]=np.round(255/4*2)-1
-    # ls[newmask==4]=np.round(255/4*3)-1
-    # ls[newmask==5]=np.round(255/4*4)
-    
-    
-    
-    
-    # inv_pred_mask = np.logical_not(pred_mask)
-    
-    
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
-    # pred_mask = cv2.morphologyEx(pred_mask, cv2.MORPH_CLOSE, kernel)
-    
-    # # Image overlay (mask - gray level) (Visualization)
-    # #pred=imoverlay(im_or,pred_mask,[255,0,0])
-    
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
-    # im_dilated = cv2.dilate(pred_mask,kernel,iterations = 1)
-    
-    # kk = np.logical_not(pred_mask)
-    
-    # ll = im_dilated & kk
-    
-    # img = cv2.resize(im_or,(512,512), interpolation = cv2.INTER_AREA)
-    
-    # pred=imoverlay(im_or,ll,[255,0,0])
-    
-    
-    # kk=np.zeros([512,512,3])
-    
-    # roi_image=img[:,:,1]*pred_mask;
-    
-    # #for i in range(3):
-    
-    # #destpath= 'C:/Users/Andres/Desktop/CovidImages/Mask2/'   
-    
-    # norm_img=cv2.normalize(roi_image, None, 
-    #                    alpha = 0, 
-    #                    beta = 255, 
-    #                    norm_type = cv2.NORM_MINMAX, 
-    #                    dtype = cv2.CV_32F)
-    
- 

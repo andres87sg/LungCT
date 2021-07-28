@@ -1,0 +1,65 @@
+{
+  "ContentCreatorName": "AI",
+  "ContentDescription": "AI segmentation",
+  "ContentLabel": "segmentation",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "",
+  "SeriesDescription": "Segmentation",
+  "SeriesNumber": "105",
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentLabel": "Lung",
+        "SegmentDescription": "* Segmentation",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "123037004",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Anatomical Structure"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "39607008",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Lung"
+        },
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "NeuralNetwork"        
+      },
+      {
+        "labelID": 2,
+        "SegmentLabel": "Ground Glass",
+        "SegmentDescription": "* Segmentation",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "123037004",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Anatomical Structure"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "39607008",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Lung"
+        },
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "NeuralNetwork"        
+      },
+      {
+        "labelID": 3,
+        "SegmentLabel": "Consolidation",
+        "SegmentDescription": "* Segmentation",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "123037004",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Anatomical Structure"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "39607008",
+          "CodingSchemeDesignator": "SCT",
+          "CodeMeaning": "Lung"
+        },
+        "SegmentAlgorithmType": "AUTOMATIC",
+        "SegmentAlgorithmName": "NeuralNetwork"        
+      }
+    ]
+  ]
+}
