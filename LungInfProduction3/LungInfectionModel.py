@@ -75,12 +75,10 @@ class LungInfectionModel():
         lngmask2=self.getsmoothmask(lngmask)
         lunginfmask2=self.getsmoothmask(lnginfmask)
         
-        a=0
-        
-        
         
         pred_maskmulti_res=lngmask2+lunginfmask2
-
+        
+        a=0
 
         """
         pred_maskmulti=np.round(pred_maskmulti*4)-1
