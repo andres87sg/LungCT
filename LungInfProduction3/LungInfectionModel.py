@@ -29,34 +29,27 @@ class LungInfectionModel():
         dcm_originalsize = dcm_size(dcm_img)
         
         return norm_img, ins_num, dcm_originalsize
-    
-       
+         
     def run_prediction(self,norm_img,targetsize):
         
         inputCNNimg=getprepareimgCNN(norm_img,4)
-        LngSegmentatioMask = self.mdl1.predict(inputCNNimg)
         
+        # Segmentación de pulmón (lng)
+        LngSegmentatioMask = self.mdl1.predict(inputCNNimg)
         LngSegmentatioMask = getsmoothmask(LngSegmentatioMask[0,:,:,0])
         
+        # TAmaño de la imagen 512x512
         CroppedLng = np.zeros((imgnormsize[0],imgnormsize[1],3))
         
         for i in range(3):
             CroppedLng[:,:,i] = norm_img[:,:,i]*LngSegmentatioMask
             
         scale=4
+        
         LngCNNimg=getprepareimgCNN(CroppedLng,scale)
         
-        # # TAmaño de la imagen 512x512
-        # CroppedLngRGB = np.zeros((imgnormsize[0],imgnormsize[1],3))
-        
-        # for ind in range(3):
-        #     CroppedLngRGB[:,:,ind] = CroppedLng/255
-            
-        # scale=4
-        # LngCNNimg=getprepareimgCNN(LngSegmentatioImgRGB,scale)
-        
+        # Segmentación de vidrio esmerilado y consolidacion (ggo + cons)
         PredictedLngInfMask = self.mdl2.predict(LngCNNimg)
-        
         PredictedLngInf = np.squeeze(PredictedLngInfMask,axis=0)
         PredictedLngInfMask = np.argmax(PredictedLngInf,axis=-1)
 
@@ -110,8 +103,8 @@ start_time = time()
 
 
 
-#for i in range(len(listfiles)):
-for i in range(50,51):
+for i in range(len(listfiles)):
+#for i in range(50,51):
     
     dcmfilename = listfiles[i]
     
