@@ -9,9 +9,9 @@ import os
 import pydicom as dicom
 
 from LungInfectionUtils import dcm_convert,getlungsegmentation,getprepareimgCNN
-from LungInfectionUtils import lunginfectionsegmentation
 from LungInfectionUtils import dcm_size,dcm_imresize
-from LungInfectionConstantManager import WinLength,WinWidth
+from LungInfectionUtils import getsmoothmask,getRoImask
+from LungInfectionConstantManager import WinLength,WinWidth,imgnormsize
 from AbstractProducts import load_mdl_lungsegmentation,load_mdl_infsegmentation
 from seg_utils import create_segmentations
 
@@ -22,8 +22,7 @@ class LungInfectionModel():
         
         self.mdl1=mdl1
         self.mdl2=mdl2
-      
-    
+        
     def run_preprocessing(self, dcm_img):
         
         [norm_img, ins_num] = dcm_convert(dcm_img,WinLength,WinWidth)    
@@ -31,111 +30,78 @@ class LungInfectionModel():
         
         return norm_img, ins_num, dcm_originalsize
     
-    def getsmoothmask(self,pred_mask):
+    # def getsmoothmask(self,Mask):
         
-        pred_mask2 = cv.resize(pred_mask,(512,512),interpolation = cv.INTER_AREA)
+    #     ResizedMask = cv.resize(Mask,(imgnormsize[0],imgnormsize[1]),
+    #                            interpolation = cv.INTER_AREA)
+    #     BlurredMask = cv.GaussianBlur(ResizedMask, (9,9), 5)
+    #     ModifiedMask = np.uint16(BlurredMask>0.5)
         
-        # pred_mask3 = np.uint16(pred_mask2>=0.5)
+    #     return ModifiedMask
+    
+    # def getRoImask(self,Mask,th1,th2):
         
-        MASK3 = cv.GaussianBlur(pred_mask2, (9,9), 5)
+    #     MaskTh1=Mask<th2
+    #     MaskTh2=Mask>th1
         
-        pred_mask4 = np.uint16(MASK3>=0.5)
+    #     RoIMask = MaskTh1 & MaskTh2
         
-        return pred_mask4
+    #     return RoIMask
 
         
     def run_prediction(self,norm_img,targetsize):
         
         inputCNNimg=getprepareimgCNN(norm_img,4)
-        predictedmask = self.mdl1.predict(inputCNNimg)
-        lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
-        im1=np.zeros((512,512,3))
+        LngSegmentatioMask = self.mdl1.predict(inputCNNimg)
         
-        for i in range(3):
-            im1[:,:,i]=lungsegmentationimg/255
+        LngSegmentatioMask = getsmoothmask(LngSegmentatioMask[0,:,:,0])
+        LngSegmentatioImg = norm_img[:,:,0]*LngSegmentatioMask
         
+        # TAmaño de la imagen 512x512
+        LngSegmentatioImgRGB = np.zeros((imgnormsize[0],imgnormsize[1],3))
+        
+        for ind in range(3):
+            LngSegmentatioImgRGB[:,:,ind] = LngSegmentatioImg/255
+            
         scale=4
-        lungseg=getprepareimgCNN(im1,scale)
+        LngCNNimg=getprepareimgCNN(LngSegmentatioImgRGB,scale)
         
+        PredictedLngInfMask = self.mdl2.predict(LngCNNimg)
         
-        
-        predictedlunginfmask = self.mdl2.predict(lungseg)
-        
-        pred_maskmulti = predictedlunginfmask[0,:,:,:]
-        
-        zz=np.argmax(pred_maskmulti,axis=-1)
-        
+        PredictedLngInf = np.squeeze(PredictedLngInfMask,axis=0)
+        PredictedLngInfMask = np.argmax(PredictedLngInf,axis=-1)
+
         # El tamaño es de 128x128 pix
-        lngmask = np.zeros((np.shape(zz)[0],np.shape(zz)[1]))
+        LngMask = np.zeros((np.shape(PredictedLngInfMask)[0],
+                            np.shape(PredictedLngInfMask)[1]))
         
-        lngmask[zz!=2]=1
-        
-        lnginfmask=np.uint16(pred_maskmulti[:,:,0]>0.1)
+        # Mascara de segmentación de Pulmón 
+        LngMask[PredictedLngInfMask!=2]=1
 
-        lngmask2=self.getsmoothmask(lngmask)
-        lunginfmask2=self.getsmoothmask(lnginfmask)
-        
-        
-        #pred_maskmulti_res=lngmask2+lunginfmask2
-        maskfin=np.zeros((512,512))
-        lngsegm3=lunginfmask2*norm_img[:,:,0]
-        
-        a=lngsegm3<80
-        b=lngsegm3>60
-        
-        lng = a & b
-        
-        a=lngsegm3>90
-        b=lngsegm3<170
-        
-        ggo = a & b
-        
-        a=lngsegm3>170
-        b=lngsegm3<255
-        
-        con = a & b
-        
-        maskfin[con==1]=2
-        maskfin[ggo==1]=1
-        maskfin[lng==1]=0
-        #plt.imshow(maskfin,cmap='gray')
-        
-        maskfin2=np.zeros((512,512))
+        LngInfMask=np.uint16(PredictedLngInf[:,:,0]>0.5)
 
-        lng2=self.getsmoothmask(np.int16(lng))
-        ggo2=self.getsmoothmask(np.int16(ggo))
-        con2=self.getsmoothmask(np.int16(con))
+        LngMask = getsmoothmask(LngMask)
+        LngInfMask = getsmoothmask(LngInfMask)
         
-        maskfin2[con2==1]=2
-        maskfin2[ggo2==1]=1
-        maskfin2[lng2==1]=0
-        #plt.imshow(maskfin2,cmap='gray')
         
-        pred_maskmulti_res=maskfin2+lngmask2
+        
+        CroppedLngInf = LngInfMask*norm_img[:,:,0]
+        
+        lngMask = getRoImask(CroppedLngInf,60,90)
+        ggoMask = getRoImask(CroppedLngInf,90,170)
+        conMask = getRoImask(CroppedLngInf,170,255)
 
+        lng=getsmoothmask(np.int16(lngMask))
+        ggo=getsmoothmask(np.int16(ggoMask))
+        con=getsmoothmask(np.int16(conMask))
         
+        PredictedMaskMulti=LngMask.copy()
         
-        
-        
-        
-        
-        
-        
-        
-        a=0
+        for mask,label in zip((lng,ggo,con),range(1,4)):
+            PredictedMaskMulti[mask==1]=label
 
-        """
-        pred_maskmulti=np.round(pred_maskmulti*4)-1
-        
-        lung=pred_maskmulti==1
-        ggo=pred_maskmulti==2
-        cons=pred_maskmulti==3
-        
-        pred_maskmulti_res=lung+2*ggo+3*cons
-        """
-        
-                        
-        return pred_maskmulti_res
+                
+        return PredictedMaskMulti
 
     def run_evaluation(self):
         pass
@@ -144,7 +110,7 @@ class LungInfectionModel():
         pass
 
 #%% Prueba 
-origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient3/'
+origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient2/'
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 listfiles = os.listdir(origpath)
 
@@ -157,8 +123,8 @@ start_time = time()
 
 
 
-for i in range(len(listfiles)):
-#for i in range(50,51):
+#for i in range(len(listfiles)):
+for i in range(50,51):
     
     dcmfilename = listfiles[i]
     

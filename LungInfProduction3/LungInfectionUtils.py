@@ -110,6 +110,25 @@ def getlungsegmentation(inputimg,predictedmask):
     outputimg = inputimg[:,:,0]*cropmask
     return outputimg
 
+def getsmoothmask(Mask):
+    
+    ResizedMask = cv.resize(Mask,(imgnormsize[0],imgnormsize[1]),
+                           interpolation = cv.INTER_AREA)
+    BlurredMask = cv.GaussianBlur(ResizedMask, (9,9), 5)
+    ModifiedMask = np.uint16(BlurredMask>0.5)
+    
+    return ModifiedMask
+
+def getRoImask(Mask,th1,th2):
+    
+    MaskTh1=Mask<th2
+    MaskTh2=Mask>th1
+    
+    RoIMask = MaskTh1 & MaskTh2
+    
+    return RoIMask
+
+
 
 #%%
 def kmeanscluster(im_or):
