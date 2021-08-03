@@ -78,19 +78,13 @@ def window_img_transf(image, win_center, win_width):
     return window_image_gl
 
 def getprepareimgCNN(inputimg,imgscale):
-    #imgscale = inputimgCNNscale
-    # Prepare input image as input in the model 
-    # inputimg=cv.resize(inputimg,(imgnormsize[0]//imgscale,
-    #                            imgnormsize[1]//imgscale),
-    #                    interpolation = cv.INTER_AREA)
-    
      
     inputimg=cv.resize(inputimg,(imgnormsize[0]//imgscale,
                             imgnormsize[1]//imgscale),
                     interpolation = cv.INTER_NEAREST)
       
     # Input image normalization imnorm = im/max(im)
-    norminputimg=inputimg/np.max(inputimg)
+    norminputimg=inputimg/255
     
     # Adding one dimension to array
     nn_inputimg = np.expand_dims(norminputimg,axis=[0])

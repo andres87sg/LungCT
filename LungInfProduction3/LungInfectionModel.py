@@ -30,41 +30,30 @@ class LungInfectionModel():
         
         return norm_img, ins_num, dcm_originalsize
     
-    # def getsmoothmask(self,Mask):
-        
-    #     ResizedMask = cv.resize(Mask,(imgnormsize[0],imgnormsize[1]),
-    #                            interpolation = cv.INTER_AREA)
-    #     BlurredMask = cv.GaussianBlur(ResizedMask, (9,9), 5)
-    #     ModifiedMask = np.uint16(BlurredMask>0.5)
-        
-    #     return ModifiedMask
-    
-    # def getRoImask(self,Mask,th1,th2):
-        
-    #     MaskTh1=Mask<th2
-    #     MaskTh2=Mask>th1
-        
-    #     RoIMask = MaskTh1 & MaskTh2
-        
-    #     return RoIMask
-
-        
+       
     def run_prediction(self,norm_img,targetsize):
         
         inputCNNimg=getprepareimgCNN(norm_img,4)
         LngSegmentatioMask = self.mdl1.predict(inputCNNimg)
         
         LngSegmentatioMask = getsmoothmask(LngSegmentatioMask[0,:,:,0])
-        LngSegmentatioImg = norm_img[:,:,0]*LngSegmentatioMask
         
-        # TAmaño de la imagen 512x512
-        LngSegmentatioImgRGB = np.zeros((imgnormsize[0],imgnormsize[1],3))
+        CroppedLng = np.zeros((imgnormsize[0],imgnormsize[1],3))
         
-        for ind in range(3):
-            LngSegmentatioImgRGB[:,:,ind] = LngSegmentatioImg/255
+        for i in range(3):
+            CroppedLng[:,:,i] = norm_img[:,:,i]*LngSegmentatioMask
             
         scale=4
-        LngCNNimg=getprepareimgCNN(LngSegmentatioImgRGB,scale)
+        LngCNNimg=getprepareimgCNN(CroppedLng,scale)
+        
+        # # TAmaño de la imagen 512x512
+        # CroppedLngRGB = np.zeros((imgnormsize[0],imgnormsize[1],3))
+        
+        # for ind in range(3):
+        #     CroppedLngRGB[:,:,ind] = CroppedLng/255
+            
+        # scale=4
+        # LngCNNimg=getprepareimgCNN(LngSegmentatioImgRGB,scale)
         
         PredictedLngInfMask = self.mdl2.predict(LngCNNimg)
         
@@ -82,8 +71,6 @@ class LungInfectionModel():
 
         LngMask = getsmoothmask(LngMask)
         LngInfMask = getsmoothmask(LngInfMask)
-        
-        
         
         CroppedLngInf = LngInfMask*norm_img[:,:,0]
         
