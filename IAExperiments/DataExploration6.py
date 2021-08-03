@@ -39,10 +39,8 @@ import scipy as sp
 # path = 'C:/Users/Andres/Desktop/CovidImages2/Training/CT2/CT/'
 # pathmask = 'C:/Users/Andres/Desktop/CovidImages2/Training/Mask/Mask/'
 
-path = 'C:/Users/Andres/Desktop/CovidImages2/CTMedSeg2/'
-pathmask = 'C:/Users/Andres/Desktop/CovidImages2/MaskMedSeg3/'
-
-
+path = 'C:/Users/Andres/Desktop/TrainMedSeg/CTMedSeg/'
+pathmask = 'C:/Users/Andres/Desktop/TrainMedSeg/MaskMedSeg3/'
 
 
 listfiles = os.listdir(path)
@@ -62,17 +60,25 @@ for i in tqdm.tqdm(range(len(listfiles))):
     
     # Graylevel image (array)
     im_or=cv2.imread(path+im_name)
+    
+    im_or=cv2.resize(im_or,(512,512),
+              interpolation = cv2.INTER_AREA)
+    
+    
     im_array=im_or[:,:,0]
+    im_array=cv2.resize(im_array,(512,512),
+              interpolation = cv2.INTER_AREA)
     grtr_mask=cv2.imread(pathmask+im_namemask)
     #print(np.unique(grtr_mask))
     mask=np.int16(grtr_mask[:,:,0]>0)
     
-    kernel = np.ones((10, 10), np.uint8)
-    cropmask = cv2.erode(mask, kernel)
+    # kernel = np.ones((10, 10), np.uint8)
+    # cropmask = cv2.erode(mask, kernel)
     
+    # im_or=im_array.copy()
     
-    im_or=im_or[:,:,0]*cropmask
-    grtr_mask = grtr_mask[:,:,0]*cropmask
+    # im_or=im_or[:,:,0]*cropmask
+    # grtr_mask = grtr_mask[:,:,0]*cropmask
     
     data_class0=[im_or[grtr_mask==85],0]
     data_class1=[im_or[grtr_mask==170],1]
@@ -119,13 +125,13 @@ true_labels=df['class'].values
 
 #%%
 x1=dfclass_one.iloc[:,1]
-y1=dfclass_one.iloc[:,3]
+y1=dfclass_one.iloc[:,4]
 
 x2=dfclass_two.iloc[:,1]
-y2=dfclass_two.iloc[:,3]
+y2=dfclass_two.iloc[:,4]
 
 x3=dfclass_three.iloc[:,1]
-y3=dfclass_three.iloc[:,3]
+y3=dfclass_three.iloc[:,4]
 
 
 plt.scatter(x1,y1,marker='.')

@@ -30,6 +30,18 @@ class LungInfectionModel():
         dcm_originalsize = dcm_size(dcm_img)
         
         return norm_img, ins_num, dcm_originalsize
+    
+    def getsmoothmask(self,pred_mask):
+        
+        pred_mask2 = cv.resize(pred_mask,(512,512),interpolation = cv.INTER_AREA)
+        
+        # pred_mask3 = np.uint16(pred_mask2>=0.5)
+        
+        MASK3 = cv.GaussianBlur(pred_mask2, (9,9), 5)
+        
+        pred_mask4 = np.uint16(MASK3>=0.5)
+        
+        return pred_mask4
 
         
     def run_prediction(self,norm_img,targetsize):
@@ -38,6 +50,7 @@ class LungInfectionModel():
         predictedmask = self.mdl1.predict(inputCNNimg)
         lungsegmentationimg = getlungsegmentation(norm_img,predictedmask)
         im1=np.zeros((512,512,3))
+        
         for i in range(3):
             im1[:,:,i]=lungsegmentationimg/255
         
@@ -48,10 +61,26 @@ class LungInfectionModel():
         
         predictedlunginfmask = self.mdl2.predict(lungseg)
         
-        pred_maskmulti = predictedlunginfmask[0,:,:,0]
+        pred_maskmulti = predictedlunginfmask[0,:,:,:]
         
-        pred_maskmulti=np.round(pred_maskmulti*3)-1
-        #a=0
+        zz=np.argmax(pred_maskmulti,axis=-1)
+        
+        # El tamaño es de 128x128 pix
+        lngmask = np.zeros((np.shape(zz)[0],np.shape(zz)[1]))
+        
+        lngmask[zz!=2]=1
+        
+        lnginfmask=np.uint16(pred_maskmulti[:,:,0]>0.1)
+
+        lngmask2=self.getsmoothmask(lngmask)
+        lunginfmask2=self.getsmoothmask(lnginfmask)
+        
+        a=0
+        
+        
+        
+        pred_maskmulti_res=lngmask2+lunginfmask2
+
 
         """
         pred_maskmulti=np.round(pred_maskmulti*4)-1
@@ -63,30 +92,8 @@ class LungInfectionModel():
         pred_maskmulti_res=lung+2*ggo+3*cons
         """
         
-        
-        # pred_maskmulti=lunginfectionsegmentation(lungsegmentationimg,
-        #                                          self.mdl2)
-        
-        
-        # pred_maskmulti_res=np.round(dcm_imresize(pred_maskmulti,
-        #                                           targetsize[0],
-        #                                           targetsize[1]))
-        
-        # lngmask=np.round(dcm_imresize(predictedmask[0,:,:,0],
-        #                                   targetsize[0],
-        #                                   targetsize[1]))
-        
-        # ggomask=np.int16(pred_maskmulti_res==2)
-        # conmask=np.int16(pred_maskmulti_res==3)
-        
-        # kernel = np.ones((10,10), np.uint8)
-        
-        # ggomask2=cv.morphologyEx(ggomask, cv.MORPH_OPEN, kernel)
-        # conmask2=cv.morphologyEx(conmask, cv.MORPH_OPEN, kernel)
-        
-        # pred_maskmulti_res=lngmask+ggomask2+2*conmask2
-                
-        return pred_maskmulti
+                        
+        return pred_maskmulti_res
 
     def run_evaluation(self):
         pass
@@ -95,7 +102,7 @@ class LungInfectionModel():
         pass
 
 #%% Prueba 
-origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient3/'
+origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient2/'
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 listfiles = os.listdir(origpath)
 
@@ -108,7 +115,7 @@ start_time = time()
 
 
 
-# for i in range(len(listfiles)):
+#for i in range(len(listfiles)):
 for i in range(50,51):
     
     dcmfilename = listfiles[i]
@@ -120,18 +127,26 @@ for i in range(50,51):
     
     im1=np.zeros((512,512,3))
     for p in range(3):
-        im1[:,:,p]=pred_mask/3
+        #im1[:,:,p]=pred_mask/3
+        im1[:,:,p]=pred_mask
     
     
     #cv.resize(pred_maskmulti_res,(targetsize[0],targetsize[1]),interpolation = cv.INTER_AREA)
     imout=cv.resize(im1,(dcm_originalsize[1],dcm_originalsize[0]),
               interpolation = cv.INTER_AREA)
     
+    imor_res=cv.resize(norm_img,(dcm_originalsize[1],dcm_originalsize[0]),
+              interpolation = cv.INTER_AREA)
+    
     imout2=np.round(imout[:,:,0]*3)
     
     
-    plt.figure()
+    plt.show()
+    plt.subplot(1,2,1)
     plt.imshow(imout2,cmap='gray')
+    plt.axis('off')
+    plt.subplot(1,2,2)
+    plt.imshow(imor_res,cmap='gray')
     plt.axis('off')
     print('Instace number: '+ str(i))
     
@@ -168,6 +183,12 @@ dest_folder='C:/Users/Andres/Desktop/SementacionesDicom/'
 #%%
 
 create_segmentations([lung_mask,ground_glass_mask,consolidation_mask],metadata,origpath,dest_folder)
+
+
+
+
+
+#%%
 
 
 
