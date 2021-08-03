@@ -76,7 +76,51 @@ class LungInfectionModel():
         lunginfmask2=self.getsmoothmask(lnginfmask)
         
         
-        pred_maskmulti_res=lngmask2+lunginfmask2
+        #pred_maskmulti_res=lngmask2+lunginfmask2
+        maskfin=np.zeros((512,512))
+        lngsegm3=lunginfmask2*norm_img[:,:,0]
+        
+        a=lngsegm3<80
+        b=lngsegm3>60
+        
+        lng = a & b
+        
+        a=lngsegm3>90
+        b=lngsegm3<170
+        
+        ggo = a & b
+        
+        a=lngsegm3>170
+        b=lngsegm3<255
+        
+        con = a & b
+        
+        maskfin[con==1]=2
+        maskfin[ggo==1]=1
+        maskfin[lng==1]=0
+        #plt.imshow(maskfin,cmap='gray')
+        
+        maskfin2=np.zeros((512,512))
+
+        lng2=self.getsmoothmask(np.int16(lng))
+        ggo2=self.getsmoothmask(np.int16(ggo))
+        con2=self.getsmoothmask(np.int16(con))
+        
+        maskfin2[con2==1]=2
+        maskfin2[ggo2==1]=1
+        maskfin2[lng2==1]=0
+        #plt.imshow(maskfin2,cmap='gray')
+        
+        pred_maskmulti_res=maskfin2+lngmask2
+
+        
+        
+        
+        
+        
+        
+        
+        
         
         a=0
 
@@ -100,7 +144,7 @@ class LungInfectionModel():
         pass
 
 #%% Prueba 
-origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient2/'
+origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient3/'
 #origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 listfiles = os.listdir(origpath)
 
@@ -113,8 +157,8 @@ start_time = time()
 
 
 
-#for i in range(len(listfiles)):
-for i in range(50,51):
+for i in range(len(listfiles)):
+#for i in range(50,51):
     
     dcmfilename = listfiles[i]
     
