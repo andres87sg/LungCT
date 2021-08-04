@@ -101,7 +101,7 @@ def getlungsegmentation(inputimg,predictedmask):
     kernel = np.ones((SEsize,SEsize), np.uint8)
     cropmask = cv.erode(predictedmaskresize, kernel)
     
-    outputimg = inputimg[:,:,0]*cropmask
+    #outputimg = inputimg[:,:,0]*cropmask
     return outputimg
 
 def getsmoothmask(Mask):
@@ -110,6 +110,15 @@ def getsmoothmask(Mask):
                            interpolation = cv.INTER_AREA)
     BlurredMask = cv.GaussianBlur(ResizedMask, (9,9), 5)
     ModifiedMask = np.uint16(BlurredMask>0.5)
+    
+    return ModifiedMask
+
+def getsmoothmask2(Mask,ksize,sigma,th):
+    
+    ResizedMask = cv.resize(Mask,(imgnormsize[0],imgnormsize[1]),
+                           interpolation = cv.INTER_AREA)
+    BlurredMask = cv.GaussianBlur(ResizedMask, ksize, sigma)
+    ModifiedMask = np.uint16(BlurredMask>th)
     
     return ModifiedMask
 
@@ -122,104 +131,3 @@ def getRoImask(Mask,th1,th2):
     
     return RoIMask
 
-
-
-#%%
-def kmeanscluster(im_or):
-    
-    pixel_values = np.float32(im_or.reshape((-1,1)))
-    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-    flags = cv.KMEANS_RANDOM_CENTERS
-    k=3 # Background, Lung, Consolidation and GGO
-    compactness,labels,centers = cv.kmeans(pixel_values,k,None,criteria,10,flags)
-    centers = np.uint8(centers)
-    labels = labels.flatten()
-    
-    segmented_image_vector = centers[labels.flatten()]
-    segmented_image = segmented_image_vector.reshape(im_or.shape)
-    
-    return segmented_image
-
-def feature_extraction(im_or,roi,subsample):
-    dist=5
-    statslist=[]
-    
-    #subsample=1
-    
-    xcoord=roi[0][::subsample]
-    ycoord=roi[1][::subsample]
-    
-    # Slicing window
-    for k in range(np.shape(xcoord)[0]):
-        #print(k)
-        c=ycoord[k],xcoord[k]
-        data=(im_or[c[1]-dist:c[1]+dist,c[0]-dist:c[0]+dist]).flatten()
-        mean_gl = np.mean(data)
-        med_gl  = np.median(data)
-        std_gl  = np.std(data)
-        kurt_gl = sp.stats.kurtosis(data)
-        skew_gl = sp.stats.skew(data)        
-        statslist.append([mean_gl,med_gl,std_gl,kurt_gl,skew_gl])
-
-    featurematrix = np.array(statslist)    
-
-    return featurematrix
-
-def predmask(im_or,roi,subsample,predicted_label,label):
-    
-    #subsample=1   
-    predcoordy=roi[0][::subsample][predicted_label==label]
-    predcoordx=roi[1][::subsample][predicted_label==label]
-    predictedmask=np.zeros((np.shape(im_or)[0],np.shape(im_or)[1]))
-    predictedmask[predcoordy,predcoordx]=label+1
-    
-    return predictedmask
-
-
-def lunginfectionsegmentation(im_or,clf_model):
- 
-    segmented_image=kmeanscluster(im_or)    
-    clusterlabels = np.unique(segmented_image)  
-    #print(len(clusterlabels))
-    
-    if len(clusterlabels)>1:
-    
-        lungmask = segmented_image==clusterlabels[1]    
-        
-        if len(clusterlabels)>2:
-            lunginfmask=np.int16(segmented_image==clusterlabels[2])
-            
-            # kernel = np.ones((3,3), np.uint8)
-            # imopen = cv.morphologyEx(lunginfmask, cv.MORPH_OPEN, kernel)    
-            # lunginfmask = imopen.copy()
-            
-            # Region of interest
-            roi = np.where(lunginfmask == 1)
-            
-            subsample=3
-            
-            featurematrix=feature_extraction(im_or,roi,subsample)
-            scaler = preprocessing.StandardScaler().fit(featurematrix)
-            featurematrix_norm=scaler.transform(featurematrix)
-            
-            predicted_label = clf_model.predict(featurematrix_norm)
-            
-            ggomask=predmask(im_or,roi,subsample,predicted_label,1)
-            conmask=predmask(im_or,roi,subsample,predicted_label,2)
-              
-            kernel = np.ones((subsample,subsample), np.uint8)
-            ggomask_close = cv.morphologyEx(ggomask, cv.MORPH_CLOSE, kernel)   
-            conmask_close = cv.morphologyEx(conmask, cv.MORPH_CLOSE, kernel)   
-            
-            lunginfmask = conmask_close+ggomask_close
-            lunginfmask[lunginfmask>3]=0
-        
-        else:
-           lunginfmask=segmented_image.copy()
-           lunginfmask[lunginfmask>0]=1
-    
-    else:
-        lunginfmask=segmented_image.copy()
-        lunginfmask[lunginfmask>0]=1
-
-    return lunginfmask
