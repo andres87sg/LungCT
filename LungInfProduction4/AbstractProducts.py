@@ -3,7 +3,7 @@ import joblib
 from tensorflow.keras.models import load_model
 
 def load_mdl_lungsegmentation():
-    path='C:/Users/Andres/Desktop/CTClassif/'
+    path='C:/Users/Andres/Desktop/'
     mdlfilename='lng_seg_mdl.h5'
     mdl_lungsegmentation=load_model(path+mdlfilename)
     return mdl_lungsegmentation
