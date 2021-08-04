@@ -105,10 +105,10 @@ class LungInfectionModel():
 
 #%% 
 
-""""
+"""
 Prueba del modelo de segmentación de ggo + cons
 
-"""" 
+"""
 
 origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient4/'
 listfiles = os.listdir(origpath)
@@ -120,8 +120,8 @@ segmentation=[]
 from time import time
 start_time = time() 
 
-for i in range(len(listfiles)):
-#for i in range(50,51):
+#for i in range(len(listfiles)):
+for i in range(50,51):
     
     dcmfilename = listfiles[i]
     
