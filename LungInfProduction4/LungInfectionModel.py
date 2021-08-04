@@ -103,9 +103,14 @@ class LungInfectionModel():
     def run_training(self):
         pass
 
-#%% Prueba 
+#%% 
+
+""""
+Prueba del modelo de segmentación de ggo + cons
+
+"""" 
+
 origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient4/'
-#origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/dicomimage/Torax/109BB5EC/'
 listfiles = os.listdir(origpath)
 
 mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
@@ -163,23 +168,9 @@ consolidation_mask = extract_mask(segmentation, 3)
 
 #%%
     
-
-
-
-#%%
 metadata = "meta.json"
 
 dest_folder='C:/Users/Andres/Desktop/SementacionesDicom/'
 
-#%%
-
-create_segmentations([lung_mask,ground_glass_mask,consolidation_mask],metadata,origpath,dest_folder)
-
-
-
-
-
-#%%
-
-
-
+create_segmentations([lung_mask,ground_glass_mask,consolidation_mask],
+                     metadata,origpath,dest_folder)
