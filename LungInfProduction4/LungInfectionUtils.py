@@ -26,11 +26,14 @@ def dcm_imresize(imginput,dcm_heigth,dcm_length):
      return imgoutput
     
 def dcm_convert(dcm_img,WL,WW): 
-   
-    #dcm_img: Imagen Dicom
-    #WW: WindowsWidth
-    #WH: WindowsHeigth
-       
+
+    """
+    Convert a dicom image in graylevel image.
+    Image are transformed to a desired WL and WW
+
+    Input: Dicom Image, WindowsWidth, WindowsHeigth
+    Output: RGB image, instance number
+    """
     # Convert dicom image to pixel array
     img_array = dcm_img.pixel_array
     instance_number=dcm_img.InstanceNumber
@@ -41,22 +44,31 @@ def dcm_convert(dcm_img,WL,WW):
     # Compute an image in a window (Lung Window)
     window_img = window_img_transf(hu_img,WL,WW)
     
+    # Convert image from graylevel to RGB
     window_img = cv.cvtColor(window_img,cv.COLOR_GRAY2RGB)
     
+    # Resize image (Usually 512x512 pix)
     window_img=cv.resize(window_img,(imgnormsize[0],imgnormsize[1]), 
                         interpolation = cv.INTER_AREA) 
-    
 
     return window_img, instance_number
 
     
 # Transform dcm to HU (Hounsfield Units)
 def transform_to_hu(medical_image, image):
+    
+    """
+    Input: Dicom image, image array
+    Output: Image in HU
+    """
+    # dicom metadata: Slope and intercept
     intercept = medical_image.RescaleIntercept
-    #print('intercept')
-    #print(str(intercept))
     slope = medical_image.RescaleSlope
+
+    # Transform  image to HU
     hu_image = image * slope + intercept
+    
+    #print('intercept' + str(intercept))
     return hu_image
 
 # Transform HU image to Window Image
