@@ -24,6 +24,7 @@ class LungInfectionModel():
         
     def run_preprocessing(self, dcm_img):
         
+        # Preprocessing step:
         [norm_img, ins_num] = dcm_convert(dcm_img,WinLength,WinWidth)    
         dcm_originalsize = dcm_size(dcm_img)
         
@@ -31,20 +32,27 @@ class LungInfectionModel():
          
     def run_prediction(self,inputimg,targetsize):
         
+        # Decrease scale may reduce computational cost
         scale=4
+
+        # Normalize and add one dimension to array
         inputCNNimg=getprepareimgCNN(inputimg,scale)
         
-        # Segmentación de pulmón (lng)
+        # Lung segmentation (lng)
         LngSegmentatioMask = self.mdl1.predict(inputCNNimg)
         
-        kernel = cv.getStructuringElement(cv.MORPH_RECT, (3,3))        
+        kernel = cv.getStructuringElement(cv.MORPH_RECT, (3,3)) 
+
+        # Lung segmentation mask must be an MxNx1 array
         cropmask = cv.morphologyEx(np.round(LngSegmentatioMask[0,:,:,0]), 
                                    cv.MORPH_CLOSE, kernel)        
+
         cropmask = cv.morphologyEx(np.round(cropmask), cv.MORPH_ERODE, kernel)
 
+        # Function to smooth the segmentation mask
         LngSegmentatioMask = getsmoothmask(cropmask)
         
-        # TAmaño de la imagen 512x512
+        # Usually the image size is 512x512
         CroppedLng = np.zeros((imgnormsize[0],imgnormsize[1],3))
         
         # Selecciona la RoI (Lng)
