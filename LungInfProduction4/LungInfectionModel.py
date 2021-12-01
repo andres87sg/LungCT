@@ -55,28 +55,30 @@ class LungInfectionModel():
         # Usually the image size is 512x512
         CroppedLng = np.zeros((imgnormsize[0],imgnormsize[1],3))
         
-        # Selecciona la RoI (Lng)
+        # The region of interest is cropped multiplying mask and gray level image
         for i in range(3):
             CroppedLng[:,:,i] = inputimg[:,:,i]*LngSegmentatioMask
-            
+        
+        # Rescaling image 4 times to reduce computational cost    
         scale=4
         LngCNNimg=getprepareimgCNN(CroppedLng,scale)
         
-        # Segmentación de vidrio esmerilado y consolidacion (ggo + cons)
+        # Segmenting healty Lung and Infection (ggo + cons)
+
         PredictedLngInfMask = self.mdl2.predict(LngCNNimg)
         PredictedLngInf = np.squeeze(PredictedLngInfMask,axis=0)
         PredictedLngInfMask = np.argmax(PredictedLngInf,axis=-1)
 
-        # El tamaño es de 128x128 pix
+        # Image size is 128x128 (e.g 512//4)
         LngMask = np.zeros((np.shape(PredictedLngInfMask)[0],
                             np.shape(PredictedLngInfMask)[1]))
         
-        # Mascara de segmentación de Pulmón 
+        #  Lung segmentation mask
         LngMask[PredictedLngInfMask!=2]=1
         LngMask = getsmoothmask(LngMask)
         
-        # Mascara de segmentación ggo+con
-        LngInfMask=np.uint16(PredictedLngInf[:,:,0]>0.5)
+        # ggo+con segmentation mask
+        LngInfMask = np.uint16(PredictedLngInf[:,:,0]>0.5)
         LngInfMask = getsmoothmask(LngInfMask)
 
         # Selecciona la RoI (ggo+cons)        
