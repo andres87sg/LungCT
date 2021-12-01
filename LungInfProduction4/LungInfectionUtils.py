@@ -29,7 +29,7 @@ def dcm_convert(dcm_img,WL,WW):
 
     """
     Convert a dicom image in graylevel image.
-    Image are transformed to a desired WL and WW
+    This one is transformed into a desired WL and WW
 
     Input: Dicom Image, WindowsWidth, WindowsHeigth
     Output: RGB image, instance number
@@ -38,16 +38,16 @@ def dcm_convert(dcm_img,WL,WW):
     img_array = dcm_img.pixel_array
     instance_number=dcm_img.InstanceNumber
     
-    # Tranform matrix to HU
+    # Step1: Tranform matrix to HU
     hu_img = transform_to_hu(dcm_img,img_array)
-    
-    # Compute an image in a window (Lung Window)
+
+    # Step2: Transform image to WL=-500 and WW=1500 (Lung)
     window_img = window_img_transf(hu_img,WL,WW)
     
-    # Convert image from graylevel to RGB
+    # Step3: Convert image from GrayLevel to RGB
     window_img = cv.cvtColor(window_img,cv.COLOR_GRAY2RGB)
     
-    # Resize image (Usually 512x512 pix)
+    # Step4: Resize image (Usually 512x512 pix)
     window_img=cv.resize(window_img,(imgnormsize[0],imgnormsize[1]), 
                         interpolation = cv.INTER_AREA) 
 
@@ -58,6 +58,8 @@ def dcm_convert(dcm_img,WL,WW):
 def transform_to_hu(medical_image, image):
     
     """
+    Transform Gray level image to HU 
+
     Input: Dicom image, image array
     Output: Image in HU
     """
