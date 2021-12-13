@@ -3,13 +3,13 @@ import joblib
 from tensorflow.keras.models import load_model
 
 def load_mdl_lungsegmentation():
-    path='C:/Users/Andres/Desktop/'
+    path='C:/Users/Andres/Desktop/imexhs/Lung/ModelosDl/'
     mdlfilename='lng_seg_mdl.h5'
     mdl_lungsegmentation=load_model(path+mdlfilename)
     return mdl_lungsegmentation
 
 def load_mdl_infsegmentation():
-    path='C:/Users/Andres/Desktop/'
+    path='C:/Users/Andres/Desktop/imexhs/Lung/ModelosDl/'
     mdlfilename = 'InfSegmModel-Multi-Python.h5'
     mdl_infsegmentation = load_model(path+mdlfilename)
     return mdl_infsegmentation

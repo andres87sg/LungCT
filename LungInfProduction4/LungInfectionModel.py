@@ -119,19 +119,19 @@ class LungInfectionModel():
 Prueba del modelo de segmentación de ggo + cons
 
 """
-
-origpath = 'C:/Users/Andres/Desktop/SementacionesDicom/Patient4/'
+#C:/Users/Andres/Desktop/imexhs/Lung/LungData/SementacionesDicom/Patient4/
+origpath = 'C:/Users/Andres/Desktop/imexhs/Lung/LungData/SementacionesDicom/Patient4/'
 listfiles = os.listdir(origpath)
 
 mdl=LungInfectionModel(load_mdl_lungsegmentation(),load_mdl_infsegmentation())
-
+#%%
 segmentation=[]
 
 from time import time
 start_time = time() 
 
-for i in range(len(listfiles)):
-#for i in range(50,51):
+#for i in range(len(listfiles)):
+for i in range(55,56):
     
     dcmfilename = listfiles[i]
     
@@ -184,3 +184,14 @@ dest_folder='C:/Users/Andres/Desktop/SementacionesDicom/'
 
 create_segmentations([lung_mask,ground_glass_mask,consolidation_mask],
                      metadata,origpath,dest_folder)
+
+#%%
+
+a=0
+
+
+#%%
+
+b=10
+
+
