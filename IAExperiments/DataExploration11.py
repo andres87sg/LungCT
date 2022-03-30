@@ -217,6 +217,23 @@ plt.ylabel('std')
 
 #%%
 
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+y=df['class'].values
+X=df['mean'].values
+
+
+y2=np.reshape(y,(len(y),1))
+X2=np.reshape(X,(len(X),1))
+
+#%%
+
+reg = LinearRegression().fit(X2, y2)
+
+#%%
+
+
 zz=pd.concat([x1,x2,x3])
 zz2=pd.concat([y1,y2,y3])
 
